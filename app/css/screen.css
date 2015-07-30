@@ -1,0 +1,46 @@
+#main{
+    width: 100%;
+}
+
+#headerRow{
+    width: 100%;
+    height: 50px;
+    border: 2px solid #8AC007;
+}
+
+#leftBar{
+    float: left;
+    width: 150px;
+    border: 2px solid #CCC047;
+}
+
+#canvas{
+    margin-left: 155px;
+    margin-right: 105px;
+    border: 2px solid #ccffcc;
+}
+
+#rightBar{
+    float: right;
+    width: 100px;
+    border: 2px solid #444444;
+}
+
+#viz{
+    float: right;
+    width: 100px;
+    border: 2px solid #444444;
+}
+
+.link{
+}
+
+/* Start Graph */
+body { font: 12px Arial;}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1; shape-rendering: crispEdges;
+}
+/* End Graph */
