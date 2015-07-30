@@ -3,58 +3,19 @@
  */
 
 /*
-d3.text("data/table.csv", function(datasetText) {
-
-    var parsedCSV = d3.csv.parseRows(datasetText);
-
-    var sampleHTML = d3.select("#canvas")
-        .append("table")
-        .style("border-collapse", "collapse")
-        .style("border", "2px black solid")
-
-        .selectAll("tr")
-        .data(parsedCSV)
-        .enter().append("tr")
-
-        .selectAll("td")
-        .data(function(d){return d;})
-        .enter().append("td")
-        .style("border", "1px black solid")
-        .style("padding", "5px")
-        .on("mouseover", function(){d3.select(this).style("background-color", "aliceblue")})
-        .on("mouseout", function(){d3.select(this).style("background-color", "white")})
-        .text(function(d){return d;})
-        .style("font-size", "12px");
-});
-
-var sampleSVG = d3.select("#canvas")
-    .append("svg")
-    .attr("width", 100)
-    .attr("height", 100);
-
-sampleSVG.append("circle")
-    .style("stroke", "gray")
-    .style("fill", "white")
-    .attr("r", 40)
-    .attr("cx", 50)
-    .attr("cy", 50)
-    .on("mouseover", function(){d3.select(this).style("fill", "aliceblue");})
-    .on("mouseout", function(){d3.select(this).style("fill", "white");});
-*/
-
-
-/*
  0:id,1:sx,2:sy,3:tx,4:ty,5:dup,6:data,7:dir,8:region
  0,526,0,29,1,0,0,0,1
  1,1212,0,68,1,0,0,0,1
  */
 var dataset2 = [
+    [0, 2, 0, 5, 1, 0, 10, 0, 1],
     [0, 2, 1, 5, 2, 0, 10, 0, 1],
     [0, 2, 1, 5, 2, 0, 2, 1, 1],
     [0, 10, 1, 8, 2, 0, 5, 0, 1],
     [0, 10, 1, 8, 2, 0, 0, 1, 1],
-    [0, 18, 1, 18, 2, 0, 7, 0, 1],
-    [0, 18, 1, 18, 2, 0, 3, 1, 1],
+    [0, 30, 1, 18, 2, 0, 7, 0, 1],
+    [0, 30, 1, 18, 2, 0, 3, 1, 1],
+    [0, 10, 2, 20, 3, 0, 7, 0, 1],
     [0, 1, 2, 17, 3, 0, 7, 0, 1],
     [0, 1, 2, 17, 3, 0, 3, 1, 1]
 ];
@@ -83,7 +44,7 @@ function generateMatrix(dim){
 
  */
 function getTriangleLink(i, j, k){
-    expression = "";
+    var expression = "";
 
     expression += "M " + (i + linkWidth) + " " + j;
     if (k == 0){
@@ -96,16 +57,26 @@ function getTriangleLink(i, j, k){
 }
 
 function translateCoords(sx, sy, tx, ty){
-    yinner = tx % groupSize
-    youter = Math.floor(sx/groupSize) * groupSize
+    var yinner = tx % groupSize;
+    var youter = Math.floor(sx/groupSize) * groupSize;
 
-    xinner = sx % groupSize
-    xouter = (ty - 2) * groupSize
+    var xinner = sx % groupSize;
+    var xouter = (ty - 2) * groupSize;
 
-    
+    // Flip along the diagonal for items in side groups, and choose correct side
+    if (sy % 2 === 0){
+        tmp = yinner;
+        yinner = xinner;
+        xinner = tmp;
 
-    newY = yinner + youter
-    newX = xinner + xouter
+        var subgroup = Math.floor(tx/groupSize);
+        if ((subgroup % 2) === 1 ){
+            xouter = xouter - (2 * groupSize)
+        }
+    }
+
+    var newY = yinner + youter;
+    var newX = xinner + xouter + groupSize;
 
     return [padX(newX), padY(newY)]
 }
@@ -128,23 +99,13 @@ function padY(y){
     return y * (linkWidth+linkMargin) + (Math.floor(y/clusterWidth) * clusterMargin);
 }
 
-/*
-(x1, y1) -> (x2, y2), value
-x = x1 % clusterSize
-
-y_group = Math.floor(x1 / clusterSize)
-
-
-y = (x2 % clusterSize) + (y_group * (clusterSize + clusterMargin))
- */
-
 var linkMargin = 2;
-var linkWidth = 20;                                              // with of link in pixels
+var linkWidth = 10;                                              // with of link in pixels
 var linkRadius = linkWidth/3;
 
 var groupSize = 18;                                          // number of links to display horizontally
 var clusterWidth = (linkWidth + linkMargin) * groupSize;
-var clusterMargin = 10;
+var clusterMargin = 20;
 var dataset = [];                           //Initialize empty array
 
 for (var g = 0; g < 4; g++){
@@ -166,31 +127,43 @@ var display = d3.select("#canvas")
 
 display.append("g")
     .append("rect")
+    .attr("x", clusterWidth)
     .attr("width", clusterWidth)
     .attr("height", clusterWidth)
-    .style("fill", "black")
-    .style("stroke", "lightblue")
+    .style("fill", "lightblue")
+    .style("stroke", "lightblue");
 
-/*d3.select("#canvas").selectAll("text")
-    .data(dataset)
-    .enter()
-    .append("text")
-    .text(function(d){return d+" <br/> ";} );*/
 
-display.append("g")
-    .selectAll("d rect")
-    .data(dataset2.filter(function (d){ return d[7] == 0;}))
-    .enter()
-    .append("rect")
-    .attr("class","link")
-    .attr("x", function(d) { return translateCoords(d[1], d[2], d[3], d[4])[0]; })
-    //.attr("y", function(d) { var k = +!d[7]; return translateCoords(d[1], d[2], d[3], d[4])[1] + (k*linkWidth/2); })
-    .attr("y", function(d) { return translateCoords(d[1], d[2], d[3], d[4])[1]; })
-    .attr("width", linkWidth)
-    .attr("height", linkWidth)
-    //.attr("height", linkWidth/2)
-    //.style("stroke", "lightblue")
-    .style("fill", function(d) { return cmap(d[6]);});
+
+d3.csv("../data/milc.csv", function(error, dataset3) {
+    console.log(dataset3[3]);
+    dataset3.forEach(function(d) {
+        d.sx = +d.sx;
+        d.sy = +d.sy;
+        d.tx = +d.tx;
+        d.ty = +d.ty;
+        d.dir = +d.dir;
+        d.data = +d.data;
+    });
+    var max = d3.max(dataset3, function(d) { return d.data; });
+
+    cmap = d3.scale.linear().domain([0,  max]).range(["white", "red"]);
+
+    display.append("g")
+        .selectAll("d rect")
+        .data(dataset3.filter(function (d){ return ((d.dir === 1) && (d.sy > 0)) ;}))
+        .enter()
+        .append("rect")
+        .attr("class","link")
+        .attr("x", function(d) { return translateCoords(d.sx, d.sy, d.tx, d.ty)[0]; })
+        //.attr("y", function(d) { var k = +!d[7]; return translateCoords(d[1], d[2], d[3], d[4])[1] + (k*linkWidth/2); })
+        .attr("y", function(d) { return translateCoords(d.sx, d.sy, d.tx, d.ty)[1]; })
+        .attr("width", linkWidth)
+        .attr("height", linkWidth)
+        //.attr("height", linkWidth/2)
+        .style("stroke", "lightblue")
+        .style("fill", function(d) { return cmap(d.data); });
+});
 
 var display2 = d3.select("#canvas1")
     .append("svg")
@@ -215,49 +188,3 @@ display2.append("g")
     //.attr("width", linkWidth)
     //.attr("height", linkWidth/2)
     .style("fill", function(d) { return cmap(d[3]);});
-
-/*
-var margin = {top: 30, right: 20, bottom: 30, left: 50},
-    width = 600 - margin.left - margin.right,
-    height = 270 - margin.top - margin.bottom;
-
-var parseDate = d3.time.format("%d-%b-%y").parse;
-var x = d3.time.scale().range([0, width]);
-var y = d3.scale.linear().range([height, 0]);
-var xAxis = d3.svg.axis().scale(x)
-    .orient("bottom").ticks(5);
-var yAxis = d3.svg.axis().scale(y)
-    .orient("left").ticks(5);
-
-var valueline = d3.svg.line()
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.close); });
-
-var svg = d3.select("#canvas")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-// Get the data
-d3.tsv("data/data.tsv", function(error, data) { data.forEach(function(d) {
-    d.date = parseDate(d.date);
-    d.close = +d.close;
-});
-
-    // Scale the range of the data
-    x.domain(d3.extent(data, function(d) { return d.date; }));
-    y.domain([0, d3.max(data, function(d) { return d.close; })]);
-
-    svg.append("path") // Add the valueline path.
-        .attr("d", valueline(data));
-    svg.append("g") // Add the X Axis .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")") .call(xAxis);
-    svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxis);
-// Add the Y Axis
-});
-    */
-
