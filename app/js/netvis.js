@@ -75,50 +75,36 @@ function translateCoords(sx, sy, tx, ty){
         }
     }
 
+    // get position in display
     var newY = yinner + youter;
     var newX = xinner + xouter + groupSize;
 
-    return [padX(newX), padY(newY)]
+    // add column and link margins/padding
+    newX = (newX * (linkWidth+linkMargin)) + Math.floor((xouter/groupSize) * clusterMargin);
+    newY = (newY * (linkWidth+linkMargin)) + Math.floor((youter/groupSize) * clusterMargin);
+    return [ newX+ 20, newY + 10 ]
 }
 
-/* These should really be grouped, but I separate them in hopes of better performance. */
-function mapCoords(x ,y){
-    //var newX = x * (linkWidth+linkMargin);
-    //var newY = y * (linkWidth+linkMargin);
-
-    //var yGroup = Math.floor(x / clusterWidth);
-    var newX = x % clusterWidth;
-    var newY = y; //(y % clusterWidth)  + (yGroup * (clusterWidth);
-
-    return [translateXCoord(newX), translateYCoord(newY)];
-}
-function padX(x){
-    return x * (linkWidth+linkMargin);
-}
-function padY(y){
-    return y * (linkWidth+linkMargin) + (Math.floor(y/clusterWidth) * clusterMargin);
-}
-
-var linkMargin = 2;
+var linkMargin = 0;
 var linkWidth = 10;                                              // with of link in pixels
 var linkRadius = linkWidth/3;
 
 var groupSize = 18;                                          // number of links to display horizontally
 var clusterWidth = (linkWidth + linkMargin) * groupSize;
-var clusterMargin = 20;
+var clusterMargin = 15;
+var displayPadding = 10;
 var dataset = [];                           //Initialize empty array
 
 for (var g = 0; g < 4; g++){
     var dataset_ = generateMatrix(groupSize);
     for (var i = 0; i < dataset_.length; i++){
-        item = dataset_[i];
+        var item = dataset_[i];
         dataset.push([item[0]+(groupSize*g), 1, item[1]+(groupSize*g), 2, item[2], item[3]]);
     }
 }
 
 
-var cmap = d3.scale.linear().domain([0,  10]).range(["white", "red"]);
-
+//var cmap = d3.scale.linear().domain([0,  10]).range(["lightblue", "red"]);
 
 var display = d3.select("#canvas")
     .append("svg")
@@ -127,16 +113,27 @@ var display = d3.select("#canvas")
 
 display.append("g")
     .append("rect")
-    .attr("x", clusterWidth)
+    .attr("x", clusterWidth + 20)
+    .attr("y",  displayPadding)
     .attr("width", clusterWidth)
     .attr("height", clusterWidth)
     .style("fill", "lightblue")
     .style("stroke", "lightblue");
 
 
+display.append("g")
+    .append("rect")
+    .attr("x", clusterWidth + 20)
+    .attr("y", (clusterWidth+clusterMargin) + displayPadding)
+    .attr("width", clusterWidth)
+    .attr("height", clusterWidth)
+    .style("fill", "lightblue")
+    .style("stroke", "lightblue");
+
 
 d3.csv("../data/milc.csv", function(error, dataset3) {
     console.log(dataset3[3]);
+    var count = 0;
     dataset3.forEach(function(d) {
         d.sx = +d.sx;
         d.sy = +d.sy;
@@ -144,24 +141,28 @@ d3.csv("../data/milc.csv", function(error, dataset3) {
         d.ty = +d.ty;
         d.dir = +d.dir;
         d.data = +d.data;
+        count = count + 1;
     });
-    var max = d3.max(dataset3, function(d) { return d.data; });
 
-    cmap = d3.scale.linear().domain([0,  max]).range(["white", "red"]);
+    dataset3 = dataset3.filter(function (d){ return ((d.dir === 1) && (d.sy > 0)) ;});
+
+    var max = d3.max(dataset3, function(d) { return d.data; });
+    console.log("max data: " + max);
+    var cmap = d3.scale.linear().domain([0,  max]).range(["white", "red"]);
 
     display.append("g")
         .selectAll("d rect")
-        .data(dataset3.filter(function (d){ return ((d.dir === 1) && (d.sy > 0)) ;}))
+        .data(dataset3)
         .enter()
         .append("rect")
         .attr("class","link")
         .attr("x", function(d) { return translateCoords(d.sx, d.sy, d.tx, d.ty)[0]; })
-        //.attr("y", function(d) { var k = +!d[7]; return translateCoords(d[1], d[2], d[3], d[4])[1] + (k*linkWidth/2); })
+        //.attr("y", function(d) { var k = +!d.dir; return translateCoords(d.sx, d.sy, d.tx, d.ty)[1] + (k*linkWidth/2); })
         .attr("y", function(d) { return translateCoords(d.sx, d.sy, d.tx, d.ty)[1]; })
         .attr("width", linkWidth)
         .attr("height", linkWidth)
-        //.attr("height", linkWidth/2)
-        .style("stroke", "lightblue")
+        //.attr("ry", linkRadius)
+        .style("stroke", "black")
         .style("fill", function(d) { return cmap(d.data); });
 });
 

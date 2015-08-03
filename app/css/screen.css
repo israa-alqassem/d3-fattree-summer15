@@ -1,3 +1,7 @@
+body {
+    font: 12px Arial;
+}
+
 #main{
     width: 100%;
 }
@@ -33,14 +37,5 @@
 }
 
 .link{
+    stroke: black;
 }
-
-/* Start Graph */
-body { font: 12px Arial;}
-
-.axis path, .axis line {
-    fill: none;
-    stroke: grey;
-    stroke-width: 1; shape-rendering: crispEdges;
-}
-/* End Graph */

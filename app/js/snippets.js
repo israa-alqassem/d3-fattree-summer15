@@ -54,7 +54,27 @@
  });
  */
 
+/* These should really be grouped, but I separate them in hopes of better performance.
+function mapCoords(x ,y){
+ //var newX = x * (linkWidth+linkMargin);
+ //var newY = y * (linkWidth+linkMargin);
 
+ //var yGroup = Math.floor(x / clusterWidth);
+ var newX = x % clusterWidth;
+ var newY = y; //(y % clusterWidth)  + (yGroup * (clusterWidth);
+
+ return [translateXCoord(newX), translateYCoord(newY)];
+}
+*/
+/* Start Graph
+body { font: 12px Arial;}
+
+.axis path, .axis line {
+ fill: none;
+ stroke: grey;
+ stroke-width: 1; shape-rendering: crispEdges;
+}
+ End Graph */
 /*
  var margin = {top: 30, right: 20, bottom: 30, left: 50},
  width = 600 - margin.left - margin.right,
