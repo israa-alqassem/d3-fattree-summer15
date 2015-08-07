@@ -7,31 +7,7 @@
  0,526,0,29,1,0,0,0,1
  1,1212,0,68,1,0,0,0,1
  */
-var dataset2 = [
-    [0, 2, 0, 5, 1, 0, 10, 0, 1],
-    [0, 2, 1, 5, 2, 0, 10, 0, 1],
-    [0, 2, 1, 5, 2, 0, 2, 1, 1],
-    [0, 10, 1, 8, 2, 0, 5, 0, 1],
-    [0, 10, 1, 8, 2, 0, 0, 1, 1],
-    [0, 30, 1, 18, 2, 0, 7, 0, 1],
-    [0, 30, 1, 18, 2, 0, 3, 1, 1],
-    [0, 10, 2, 20, 3, 0, 7, 0, 1],
-    [0, 1, 2, 17, 3, 0, 7, 0, 1],
-    [0, 1, 2, 17, 3, 0, 3, 1, 1]
-];
 
-function generateMatrix(dim){
-    matrix = [];
-    for (var i = 0; i < dim; i++) {           //Loop 18 times
-        for (var j = 0; j < dim; j++) {           //Loop 18 times
-            for (var k = 0; k < 2; k++) {           //Loop 2 to generate bi-directional vals
-                var x = Math.random();
-                matrix.push([i, j, k, x]);             //Add new number to array
-            }
-        }
-    }
-    return matrix;
-}
 
 /*
     S-starting point
@@ -71,7 +47,7 @@ function translateCoords(sx, sy, tx, ty){
 
         var subgroup = Math.floor(tx/groupSize);
         if ((subgroup % 2) === 1 ){
-            xouter = xouter - (2 * groupSize)
+            xouter = xouter + ( groupSize)
         }
     }
 
@@ -95,20 +71,13 @@ var clusterMargin = 15;
 var displayPadding = 10;
 var dataset = [];                           //Initialize empty array
 
-for (var g = 0; g < 4; g++){
-    var dataset_ = generateMatrix(groupSize);
-    for (var i = 0; i < dataset_.length; i++){
-        var item = dataset_[i];
-        dataset.push([item[0]+(groupSize*g), 1, item[1]+(groupSize*g), 2, item[2], item[3]]);
-    }
-}
 
 
 //var cmap = d3.scale.linear().domain([0,  10]).range(["lightblue", "red"]);
 
 var display = d3.select("#canvas")
     .append("svg")
-    .attr("width", clusterWidth * 4)
+    .attr("width", clusterWidth * 6)
     .attr("height", clusterWidth * 5);
 
 display.append("g")

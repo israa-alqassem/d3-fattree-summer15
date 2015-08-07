@@ -66,6 +66,32 @@ function mapCoords(x ,y){
  return [translateXCoord(newX), translateYCoord(newY)];
 }
 */
+var dataset2 = [
+ [0, 2, 0, 5, 1, 0, 10, 0, 1],
+ [0, 2, 1, 5, 2, 0, 10, 0, 1],
+ [0, 2, 1, 5, 2, 0, 2, 1, 1],
+ [0, 10, 1, 8, 2, 0, 5, 0, 1],
+ [0, 10, 1, 8, 2, 0, 0, 1, 1],
+ [0, 30, 1, 18, 2, 0, 7, 0, 1],
+ [0, 30, 1, 18, 2, 0, 3, 1, 1],
+ [0, 10, 2, 20, 3, 0, 7, 0, 1],
+ [0, 1, 2, 17, 3, 0, 7, 0, 1],
+ [0, 1, 2, 17, 3, 0, 3, 1, 1]
+];
+
+function generateMatrix(dim){
+ matrix = [];
+ for (var i = 0; i < dim; i++) {           //Loop 18 times
+  for (var j = 0; j < dim; j++) {           //Loop 18 times
+   for (var k = 0; k < 2; k++) {           //Loop 2 to generate bi-directional vals
+    var x = Math.random();
+    matrix.push([i, j, k, x]);             //Add new number to array
+   }
+  }
+ }
+ return matrix;
+}
+
 /* Start Graph
 body { font: 12px Arial;}
 
