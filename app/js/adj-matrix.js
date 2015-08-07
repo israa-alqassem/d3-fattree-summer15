@@ -16,7 +16,9 @@ var linkMatrix = (function(){
     var clusterMargin = 15;
     var displayPadding = 10;
 
-    // Display object variables
+    var cmap;
+
+    // D3 object variables
     var canvas;
 
     // Private Methods
@@ -51,17 +53,27 @@ var linkMatrix = (function(){
         newX = (newX * (linkWidth+linkMargin)) + Math.floor((xouter/groupSize) * clusterMargin);
         newY = (newY * (linkWidth+linkMargin)) + Math.floor((youter/groupSize) * clusterMargin);
         return [ newX+ 20, newY + 10 ]
-    }
+    };
 
     canvas = d3.select("#canvas")
         .append("svg")
         .attr("width", clusterWidth * 6)
         .attr("height", clusterWidth * 5);
 
-    showSquaresLink = function(data){
-        display.append("g")
+    showSquaresLink = function(){
+        // TODO: this block can be removed
+        canvas.append("g")
+            .append("rect")
+            .attr("x", clusterWidth + 20)
+            .attr("y",  displayPadding)
+            .attr("width", clusterWidth)
+            .attr("height", clusterWidth)
+            .style("fill", "lightblue")
+            .style("stroke", "lightblue");
+
+        canvas.append("g")
             .selectAll("d rect")
-            .data(data)
+            .data(dataset)
             .enter()
             .append("rect")
             .attr("class","link")
@@ -75,5 +87,52 @@ var linkMatrix = (function(){
             .style("fill", function(d) { return cmap(d.data); });
     };
 
+    return {
+
+        showLinks : function(){
+            if (dataset){
+                showSquaresLink();
+            }
+        },
+
+        updateLinks: function(data){
+
+            // Find max value and map values over colour range
+            var max = d3.max(data, function(d) { return d.data; });
+            console.log("max data: " + max);
+            cmap = d3.scale.linear().domain([0,  max]).range(["white", "red"]);
+
+            dataset = data;
+            this.showLinks();
+        }
+
+
+    }
 
 })();
+
+var loadButton = d3.select("#load")
+
+d3.csv("../data/milc.csv", function(error, data) {
+    var count = 0;
+    data.forEach(function(d) {
+        d.sx = +d.sx;
+        d.sy = +d.sy;
+        d.tx = +d.tx;
+        d.ty = +d.ty;
+        d.dir = +d.dir;
+        d.data = +d.data;
+        count = count + 1;
+    });
+
+    // remove compute node-connect links
+    // TODO: NOTE: I am temporarily removing "up" traffic (links)
+    data = data.filter(function (d){ return ((d.dir === 1) && (d.sy > 0)) ;});
+
+    linkMatrix.updateLinks(data);
+    linkMatrix.showLinks();
+});
+
+
+
+// python -m SimpleHTTPServer 8000

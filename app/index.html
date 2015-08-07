@@ -13,12 +13,44 @@
 
     <div id="main" class="main">
         <div id="headerRow">Header</div>
-        <div id="leftBar">Left</div>
+        <div id="leftBar">
+            <ul>
+                <li>
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td>Temp Clicker:</td>
+                            <td><label id="catalog"></label>
+                                <button id="load" style="margin-left: 10px; height:10px" onclick="updateData()" >load</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Run:</td>
+                            <td><select id="run"></select></td>
+                        </tr>
+                        <tr>
+                            <td>Counter:</td>
+                            <td><select id="counter"></select></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td id="sub"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </li>
+
+                <li>
+                    <Label>Values colormap</Label>
+                    <div id="colormap" style="margin:10px"></div>
+                </li>
+            </ul>
+        </div>
         <div id="rightBar">Right</div>
         <div id="canvas"></div>
     </div>
 
-    <script type="text/javascript" src="js/netvis.js"></script>
+    <script type="text/javascript" src="js/adj-matrix.js"></script>
 
 </body>
 </html>
