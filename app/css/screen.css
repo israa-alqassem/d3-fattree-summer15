@@ -39,3 +39,16 @@ body {
 .link{
     stroke: black;
 }
+
+div.infotip {
+    position: absolute;
+    text-align: left;
+    min-width: 60px;
+    height: 28px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}

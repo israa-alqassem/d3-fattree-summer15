@@ -2,7 +2,26 @@
  * Created by kevin on 8/5/15.
  */
 
-var linkMatrix = (function(){
+function formatBytes(bytes) {
+    if(bytes < 1024) return bytes + " B";
+    else if(bytes < 1048576) return(bytes / 1024).toFixed(3) + " KB";
+    else if(bytes < 1073741824) return(bytes / 1048576).toFixed(3) + " MB";
+    else return(bytes / 1073741824).toFixed(3) + " GB";
+}
+
+var logger = function() { return console.log("log")};
+
+var Controls = (function(){
+    var loadButton = d3.select("#button-load");
+
+    return{
+        addLoadAction : function(action){
+            loadButton.on("click", action );
+        }
+    }
+})();
+
+var LinkMatrix = (function(){
     var dataset;
     var location;
 
@@ -22,9 +41,13 @@ var linkMatrix = (function(){
     var canvas;
 
     // Private Methods
-    var showSquaresLink, showTriangleLinks;
+    var showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip;
     var translateCoords;
     var drawTriangle;
+
+    var infotipDiv = d3.select("#canvas").append("div")
+        .attr("class", "infotip")
+        .style("opacity", 0);
 
     translateCoords = function (sx, sy, tx, ty){
         var yinner = tx % groupSize;
@@ -61,6 +84,9 @@ var linkMatrix = (function(){
         .attr("height", clusterWidth * 5);
 
     showSquaresLink = function(){
+        //d3.select("#canvas")
+        //    .attr("width", function(){ return (clusterWidth * 4) + "px";});
+
         // TODO: this block can be removed
         canvas.append("g")
             .append("rect")
@@ -72,6 +98,7 @@ var linkMatrix = (function(){
             .style("stroke", "lightblue");
 
         canvas.append("g")
+            .attr("id","adjMatrix")
             .selectAll("d rect")
             .data(dataset)
             .enter()
@@ -84,7 +111,25 @@ var linkMatrix = (function(){
             .attr("height", linkWidth)
             //.attr("ry", linkRadius)
             .style("stroke", "black")
-            .style("fill", function(d) { return cmap(d.data); });
+            .style("fill", function(d) { return cmap(d.data); })
+            .on("mouseover", function(d){ showInfoTip(d); })
+            .on("mouseout", function(d) { hideInfoTip(); });
+    };
+
+    showInfoTip = function(d){
+        infotipDiv.transition()
+            .duration(500)
+            .style("opacity", .9);
+        infotipDiv.html("Traffic:<br>" + formatBytes(d.data))
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY) + "px");
+
+    };
+
+    hideInfoTip = function(){
+        infotipDiv.transition()
+            .duration(500)
+            .style("opacity", 0);
     };
 
     return {
@@ -103,15 +148,13 @@ var linkMatrix = (function(){
             cmap = d3.scale.linear().domain([0,  max]).range(["white", "red"]);
 
             dataset = data;
-            this.showLinks();
+            //this.showLinks();
         }
 
 
     }
 
 })();
-
-var loadButton = d3.select("#load")
 
 d3.csv("../data/milc.csv", function(error, data) {
     var count = 0;
@@ -129,10 +172,16 @@ d3.csv("../data/milc.csv", function(error, data) {
     // TODO: NOTE: I am temporarily removing "up" traffic (links)
     data = data.filter(function (d){ return ((d.dir === 1) && (d.sy > 0)) ;});
 
-    linkMatrix.updateLinks(data);
-    linkMatrix.showLinks();
+    LinkMatrix.updateLinks(data);
+    //LinkMatrix.showLinks();
+
 });
 
+function init(){
+    Controls.addLoadAction(LinkMatrix.showLinks);
 
+}
+
+init();
 
 // python -m SimpleHTTPServer 8000

@@ -14,14 +14,12 @@
     <div id="main" class="main">
         <div id="headerRow">Header</div>
         <div id="leftBar">
-            <ul>
-                <li>
                     <table>
                         <tbody>
                         <tr>
                             <td>Temp Clicker:</td>
                             <td><label id="catalog"></label>
-                                <button id="load" style="margin-left: 10px; height:10px" onclick="updateData()" >load</button>
+                                <button id="button-load" style="margin-left: 10px; height:10px" >load</button>
                             </td>
                         </tr>
                         <tr>
@@ -36,15 +34,15 @@
                             <td></td>
                             <td id="sub"></td>
                         </tr>
+                        <tr>
+                            <td><label>Values colormap</label></td>
+                            <td  id="colormap"></td>
+                        </tr>
                         </tbody>
                     </table>
-                </li>
 
-                <li>
-                    <Label>Values colormap</Label>
-                    <div id="colormap" style="margin:10px"></div>
-                </li>
-            </ul>
+
+
         </div>
         <div id="rightBar">Right</div>
         <div id="canvas"></div>
