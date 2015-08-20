@@ -17,10 +17,34 @@ TODO:
  */
 var Controls = (function(){
     var loadButton = d3.select("#button-load");
+    var showButton = d3.select("#button-show");
+    var filesList = d3.select("#run");
+
+    // Private functions
 
     return{
-        addLoadAction : function(action){
-            loadButton.on("click", action );
+        addLoadAction : function(action) {
+            var loadFile = function(){
+                action(filesList.node().value);
+            };
+            loadButton.on("click", loadFile);
+        },
+
+        addShowAction : function(action){
+            showButton.on("click", action );
+        },
+
+        populateFileNames : function(){
+            filesList.append("option")
+                .text("")
+                .attr("value", "");
+            filesList.append("option")
+                .text("milc.csv")
+                .attr("value", "../data/milc.csv");
+        },
+
+        getFileField : function(){
+            return filesList.node();
         }
     }
 })();
@@ -28,6 +52,7 @@ var Controls = (function(){
 var LinkMatrix = (function(){
     var dataset;
     var location;
+    var fileField;
 
     // Layout specification variables
     var linkMargin = 0;
@@ -178,36 +203,43 @@ var LinkMatrix = (function(){
 
             dataset = data;
             //this.showLinks();
+        },
+
+        // TODO: move file functionality to another module
+        loadData: function(){
+            d3.csv(fileField.value, function(error, data) {
+                var count = 0;
+                data.forEach(function(d) {
+                    d.sx = +d.sx;
+                    d.sy = +d.sy;
+                    d.tx = +d.tx;
+                    d.ty = +d.ty;
+                    d.dir = +d.dir;
+                    d.data = +d.data;
+                    count = count + 1;
+                });
+
+                // remove compute node-connect links
+                // TODO: NOTE: I am temporarily removing "up" traffic (links)
+                data = data.filter(function (d){ return ((d.dir === 1) && (d.sy > 0)) ;});
+
+                LinkMatrix.updateLinks(data);
+                //LinkMatrix.showLinks();
+            });
+        },
+
+        bindFileNameField: function(node){
+            fileField = node;
         }
-
-
     }
-
 })();
 
-d3.csv("../data/milc.csv", function(error, data) {
-    var count = 0;
-    data.forEach(function(d) {
-        d.sx = +d.sx;
-        d.sy = +d.sy;
-        d.tx = +d.tx;
-        d.ty = +d.ty;
-        d.dir = +d.dir;
-        d.data = +d.data;
-        count = count + 1;
-    });
-
-    // remove compute node-connect links
-    // TODO: NOTE: I am temporarily removing "up" traffic (links)
-    data = data.filter(function (d){ return ((d.dir === 1) && (d.sy > 0)) ;});
-
-    LinkMatrix.updateLinks(data);
-    //LinkMatrix.showLinks();
-
-});
-
 function init(){
-    Controls.addLoadAction(LinkMatrix.showLinks);
+    Controls.populateFileNames();
+    Controls.addLoadAction(LinkMatrix.loadData);
+    Controls.addShowAction(LinkMatrix.showLinks);
+
+    LinkMatrix.bindFileNameField(Controls.getFileField());
 
 }
 
