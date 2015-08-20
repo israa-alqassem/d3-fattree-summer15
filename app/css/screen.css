@@ -44,7 +44,7 @@ div.infotip {
     position: absolute;
     text-align: left;
     min-width: 60px;
-    height: 28px;
+    min-height: 28px;
     padding: 2px;
     font: 12px sans-serif;
     background: lightsteelblue;

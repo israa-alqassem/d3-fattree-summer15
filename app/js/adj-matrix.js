@@ -11,6 +11,10 @@ function formatBytes(bytes) {
 
 var logger = function() { return console.log("log")};
 
+/*
+TODO:
+    - Move Controls to different file
+ */
 var Controls = (function(){
     var loadButton = d3.select("#button-load");
 
@@ -27,13 +31,14 @@ var LinkMatrix = (function(){
 
     // Layout specification variables
     var linkMargin = 0;
-    var linkWidth = 6;                                         // width of link in pixels
+    var linkWidth = 10;                                         // width of link in pixels
+    var linkWidth_t = linkWidth + linkMargin;
     var linkRadius = linkWidth/3;                               // for square with rounded corners
     var maxLevel;
 
-    var groupSize = 18;                                         // number of links to display horizontally/vertically per group
-    var groupSizeY = [18, 36];                                         // number of links to display horizontally/vertically per group
-    var clusterWidth = (linkWidth + linkMargin) * groupSize;    // width of cluster (group) in pixels
+    var groupSizeX = 18;                                         // number of links to display horizontally/vertically per group
+    var groupSizeY = [18, 36];                       // number of links to display vertically per group. Applicable to only levels 1 and 3 targets
+    var clusterWidth = linkWidth_t * 18;           // width of cluster (group) in pixels TODO: replace constant with variable
     var clusterMargin = 15;
     var displayPadding = 10;
 
@@ -51,38 +56,53 @@ var LinkMatrix = (function(){
         .attr("class", "infotip")
         .style("opacity", 0);
 
+    // TODO: replace all the magic with a more robust translation technique
     translateCoords = function (sx, sy, tx, ty){
-        var xinner = tx % groupSize;
-        var xouter = Math.floor(sx/groupSize) * groupSize;
+        // Always plot links with source (sx, sy) along the X axis.
+        // Eg1: for HCA (level 0) to edge switches (level 1), (sx, sy) = HCA and (tx, ty) = level1 switch
+        // Eg2: for edge switches (level 1) to level 2 switches, (sx, sy) = level 1 and (tx, ty) = level2 switch
+        var i;
 
-        var yinner = sx % groupSize;
-        var youter = (ty - 2) * groupSize;
+        if (sy % 2 === 1){
+            var tmp = [tx, ty];
+            tx = sx;
+            ty = sy;
+            sx = tmp[0];
+            sy = tmp[1];
+        }
 
-        // Shift items in the upper level based on subgroup [LLNL:cab specific]
-        if (sy % 2 === 0){
-            tmp = xinner;
-            xinner = yinner;
-            yinner = tmp;
+        // find position of containing cluster, position within cluster
+        var xCluster = Math.floor(sx/groupSizeX);
+        var xinner = sx % groupSizeX;
+        var xouter = xCluster * groupSizeX;
 
-            var subgroup = Math.floor(tx/groupSize);
-            if ((subgroup % 2) === 1 ){
-                youter = youter + (groupSize)
-            }
+        var yCluster = Math.floor(ty/2);
+        var yinner = tx % groupSizeY[Math.floor(ty/2)];
+        var youter = 0;
+        for (i = 0; i < yCluster; i++){
+            youter = youter + groupSizeY[i];
         }
 
         // get position in display
         var newY = yinner + youter;
-        var newX = xinner + xouter + groupSize;
+        var newX = xinner + xouter + groupSizeX;
 
-        // add column and link margins/padding
-        newX = (newX * (linkWidth+linkMargin)) + Math.floor((xouter/groupSize) * clusterMargin);
-        newY = (newY * (linkWidth+linkMargin)) + Math.floor((youter/groupSize) * clusterMargin);
+        // add link margins/padding
+        newX = newX * linkWidth_t;
+        newY = newY * linkWidth_t;
 
+        // add cluster margins/padding
+        newX =  newX + (xCluster * clusterMargin);
+        newY =  newY + (yCluster * clusterMargin);
 
-        // flip image horizontally
-        newY = (maxLevel * (groupSize * (linkWidth+linkMargin) + clusterMargin)) - newY;
+        // flip image along the horizontal
+        var vizHeight = 0;
+        for (i = 0; i < groupSizeY.length; i++){
+            vizHeight = vizHeight + (groupSizeY[i] * linkWidth_t) + clusterMargin;
+        }
+        newY = vizHeight  - newY;
 
-        return [ newX+ 20, newY + 10 ]
+        return [ newX, newY ]
     };
 
     canvas = d3.select("#canvas")
@@ -126,9 +146,9 @@ var LinkMatrix = (function(){
         infotipDiv.transition()
             .duration(500)
             .style("opacity", .9);
-        infotipDiv.html("Traffic:<br>" + formatBytes(d.data))
-            .style("left", (d3.event.pageX) + "px")
-            .style("top", (d3.event.pageY) + "px");
+        infotipDiv.html(d.sx + "-" + d.sy +"<br>" + d.tx + "-" + d.ty +"<br>"+"Traffic:<br>" + formatBytes(d.data))
+            .style("left", ((d3.event.pageX)+5) + "px")
+            .style("top", ((d3.event.pageY)+5) + "px");
 
     };
 
@@ -150,9 +170,10 @@ var LinkMatrix = (function(){
 
             // Find max value and map values over colour range
             var max = d3.max(data, function(d) { return d.data; });
-            maxLevel = d3.max(data, function(d) { return d.ty; });
+            maxLevel = d3.max(data, function(d) { return d.sy; });
             console.log("max level: " + maxLevel);
             console.log("max data:  " + max);
+            //console.log("calc:  " + (3/2));
             cmap = d3.scale.linear().domain([0, max/2,    max]).range(["white", "green", "black"]);
 
             dataset = data;
