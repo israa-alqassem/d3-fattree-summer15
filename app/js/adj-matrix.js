@@ -27,10 +27,12 @@ var LinkMatrix = (function(){
 
     // Layout specification variables
     var linkMargin = 0;
-    var linkWidth = 10;                                         // width of link in pixels
+    var linkWidth = 6;                                         // width of link in pixels
     var linkRadius = linkWidth/3;                               // for square with rounded corners
+    var maxLevel;
 
     var groupSize = 18;                                         // number of links to display horizontally/vertically per group
+    var groupSizeY = [18, 36];                                         // number of links to display horizontally/vertically per group
     var clusterWidth = (linkWidth + linkMargin) * groupSize;    // width of cluster (group) in pixels
     var clusterMargin = 15;
     var displayPadding = 10;
@@ -50,21 +52,21 @@ var LinkMatrix = (function(){
         .style("opacity", 0);
 
     translateCoords = function (sx, sy, tx, ty){
-        var yinner = tx % groupSize;
-        var youter = Math.floor(sx/groupSize) * groupSize;
+        var xinner = tx % groupSize;
+        var xouter = Math.floor(sx/groupSize) * groupSize;
 
-        var xinner = sx % groupSize;
-        var xouter = (ty - 2) * groupSize;
+        var yinner = sx % groupSize;
+        var youter = (ty - 2) * groupSize;
 
-        // Flip along the diagonal for items in side groups, and choose correct side
+        // Shift items in the upper level based on subgroup [LLNL:cab specific]
         if (sy % 2 === 0){
-            tmp = yinner;
-            yinner = xinner;
-            xinner = tmp;
+            tmp = xinner;
+            xinner = yinner;
+            yinner = tmp;
 
             var subgroup = Math.floor(tx/groupSize);
             if ((subgroup % 2) === 1 ){
-                xouter = xouter + ( groupSize)
+                youter = youter + (groupSize)
             }
         }
 
@@ -75,6 +77,11 @@ var LinkMatrix = (function(){
         // add column and link margins/padding
         newX = (newX * (linkWidth+linkMargin)) + Math.floor((xouter/groupSize) * clusterMargin);
         newY = (newY * (linkWidth+linkMargin)) + Math.floor((youter/groupSize) * clusterMargin);
+
+
+        // flip image horizontally
+        newY = (maxLevel * (groupSize * (linkWidth+linkMargin) + clusterMargin)) - newY;
+
         return [ newX+ 20, newY + 10 ]
     };
 
@@ -110,7 +117,6 @@ var LinkMatrix = (function(){
             .attr("width", linkWidth)
             .attr("height", linkWidth)
             //.attr("ry", linkRadius)
-            .style("stroke", "black")
             .style("fill", function(d) { return cmap(d.data); })
             .on("mouseover", function(d){ showInfoTip(d); })
             .on("mouseout", function(d) { hideInfoTip(); });
@@ -144,8 +150,10 @@ var LinkMatrix = (function(){
 
             // Find max value and map values over colour range
             var max = d3.max(data, function(d) { return d.data; });
-            console.log("max data: " + max);
-            cmap = d3.scale.linear().domain([0,  max]).range(["white", "red"]);
+            maxLevel = d3.max(data, function(d) { return d.ty; });
+            console.log("max level: " + maxLevel);
+            console.log("max data:  " + max);
+            cmap = d3.scale.linear().domain([0, max/2,    max]).range(["white", "green", "black"]);
 
             dataset = data;
             //this.showLinks();

@@ -146,3 +146,31 @@ body { font: 12px Arial;}
  });
  */
 
+translateCoords = function (sx, sy, tx, ty){
+ var yinner = tx % groupSize;
+ var youter = Math.floor(sx/groupSize) * groupSize;
+
+ var xinner = sx % groupSize;
+ var xouter = (ty - 2) * groupSize;
+
+ // Flip along the diagonal for items in side groups, and choose correct side
+ if (sy % 2 === 0){
+  tmp = yinner;
+  yinner = xinner;
+  xinner = tmp;
+
+  var subgroup = Math.floor(tx/groupSize);
+  if ((subgroup % 2) === 1 ){
+   xouter = xouter + ( groupSize)
+  }
+ }
+
+ // get position in display
+ var newY = yinner + youter;
+ var newX = xinner + xouter + groupSize;
+
+ // add column and link margins/padding
+ newX = (newX * (linkWidth+linkMargin)) + Math.floor((xouter/groupSize) * clusterMargin);
+ newY = (newY * (linkWidth+linkMargin)) + Math.floor((youter/groupSize) * clusterMargin);
+ return [ newX+ 20, newY + 10 ]
+};
