@@ -12,13 +12,16 @@ function formatBytes(bytes) {
 var logger = function() { return console.log("log")};
 
 /*
-TODO:
-    - Move Controls to different file
+TODO: Move Controls to different file
  */
 var Controls = (function(){
     var loadButton = d3.select("#button-load");
     var showButton = d3.select("#button-show");
     var filesList = d3.select("#run");
+    var linkSizeSlider = d3.select("#range-link-size");
+    var linkSizeDisplay = d3.select("#link-size-display");
+    var clusterSpaceSlider = d3.select("#range-cluster-space");
+    var clusterSpaceDisplay = d3.select("#cluster-space-display");
 
     // Private functions
 
@@ -35,12 +38,26 @@ var Controls = (function(){
         },
 
         populateFileNames : function(){
-            filesList.append("option")
-                .text("")
-                .attr("value", "");
+            //filesList.append("option")
+            //    .text("")
+            //    .attr("value", "");
             filesList.append("option")
                 .text("milc.csv")
                 .attr("value", "../data/milc.csv");
+        },
+
+        addLinkSizeAction : function(action){
+            linkSizeSlider.on("input", function(){
+                action(this.value);
+                linkSizeDisplay.text(this.value);
+            });
+        },
+
+        addClusterSpaceAction : function(action){
+            clusterSpaceSlider.on("input", function(){
+                action(this.value);
+                clusterSpaceDisplay.text(this.value);
+            });
         },
 
         getFileField : function(){
@@ -48,6 +65,10 @@ var Controls = (function(){
         }
     }
 })();
+
+/*
+ TODO: Move LINKMATRIX to different file
+ */
 
 var LinkMatrix = (function(){
     var dataset;
@@ -57,23 +78,23 @@ var LinkMatrix = (function(){
     // Layout specification variables
     var linkMargin = 0;
     var linkWidth = 10;                                         // width of link in pixels
-    var linkWidth_t = linkWidth + linkMargin;
-    var linkRadius = linkWidth/3;                               // for square with rounded corners
+    //var linkWidth_t = linkWidth + linkMargin;
+    //var linkRadius = linkWidth/3;                               // for square with rounded corners
     var maxLevel;
 
     var groupSizeX = 18;                                         // number of links to display horizontally/vertically per group
     var groupSizeY = [18, 36];                       // number of links to display vertically per group. Applicable to only levels 1 and 3 targets
-    var clusterWidth = linkWidth_t * 18;           // width of cluster (group) in pixels TODO: replace constant with variable
+    var clusterWidth = (linkWidth + linkMargin) * 18;           // width of cluster (group) in pixels TODO: replace constant with variable
     var clusterMargin = 15;
     var displayPadding = 10;
 
     var cmap;
 
     // D3 object variables
-    var canvas;
+    var canvas, adjMatrix, links;
 
     // Private Methods
-    var showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip;
+    var showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip, resizeDrawing;
     var translateCoords;
     var drawTriangle;
 
@@ -87,6 +108,7 @@ var LinkMatrix = (function(){
         // Eg1: for HCA (level 0) to edge switches (level 1), (sx, sy) = HCA and (tx, ty) = level1 switch
         // Eg2: for edge switches (level 1) to level 2 switches, (sx, sy) = level 1 and (tx, ty) = level2 switch
         var i;
+        var linkWidth_t = (linkWidth+linkMargin);
 
         if (sy % 2 === 1){
             var tmp = [tx, ty];
@@ -110,7 +132,7 @@ var LinkMatrix = (function(){
 
         // get position in display
         var newY = yinner + youter;
-        var newX = xinner + xouter + groupSizeX;
+        var newX = xinner + xouter;
 
         // add link margins/padding
         newX = newX * linkWidth_t;
@@ -120,10 +142,14 @@ var LinkMatrix = (function(){
         newX =  newX + (xCluster * clusterMargin);
         newY =  newY + (yCluster * clusterMargin);
 
-        // flip image along the horizontal
+        // flip image along the horizontal TODO: consider calculating viz height once and then reuse
+        // TODO: this is off by linkWidth/2
         var vizHeight = 0;
         for (i = 0; i < groupSizeY.length; i++){
-            vizHeight = vizHeight + (groupSizeY[i] * linkWidth_t) + clusterMargin;
+            vizHeight = vizHeight + (groupSizeY[i] * linkWidth_t);
+            if (i > 0){
+                vizHeight = vizHeight + clusterMargin;
+            }
         }
         newY = vizHeight  - newY;
 
@@ -135,25 +161,25 @@ var LinkMatrix = (function(){
         .attr("width", clusterWidth * 6)
         .attr("height", clusterWidth * 5);
 
+    adjMatrix = canvas.append("g")
+        .attr("id","linksAdjMatrix");
+
+    adjMatrix.append("g")
+        .attr("id", "links");
+
+    canvas.append("g")
+        .append("rect")
+        .attr("x", clusterWidth + 20)
+        .attr("y",  displayPadding)
+        .attr("width", clusterWidth)
+        .attr("height", clusterWidth)
+        .style("fill", "lightblue")
+        .style("stroke", "lightblue");
+
     showSquaresLink = function(){
-        //d3.select("#canvas")
-        //    .attr("width", function(){ return (clusterWidth * 4) + "px";});
+        links.exit().remove();
 
-        // TODO: this block can be removed
-        canvas.append("g")
-            .append("rect")
-            .attr("x", clusterWidth + 20)
-            .attr("y",  displayPadding)
-            .attr("width", clusterWidth)
-            .attr("height", clusterWidth)
-            .style("fill", "lightblue")
-            .style("stroke", "lightblue");
-
-        canvas.append("g")
-            .attr("id","adjMatrix")
-            .selectAll("d rect")
-            .data(dataset)
-            .enter()
+        links.enter()
             .append("rect")
             .attr("class","link")
             .attr("x", function(d) { return translateCoords(d.sx, d.sy, d.tx, d.ty)[0]; })
@@ -183,6 +209,15 @@ var LinkMatrix = (function(){
             .style("opacity", 0);
     };
 
+    resizeDrawing = function(){
+        links.transition()
+            .attr("x", function(d) { return translateCoords(d.sx, d.sy, d.tx, d.ty)[0]; })
+            .attr("y", function(d) { return translateCoords(d.sx, d.sy, d.tx, d.ty)[1]; })
+            .attr("width", linkWidth)
+            .attr("height", linkWidth);
+            //.style("fill", function(d) { return cmap(d.data); });
+    };
+
     return {
 
         showLinks : function(){
@@ -202,7 +237,25 @@ var LinkMatrix = (function(){
             cmap = d3.scale.linear().domain([0, max/2,    max]).range(["white", "green", "black"]);
 
             dataset = data;
+            links = d3.select("#links")
+                .selectAll("d rect")
+                .data(dataset);
+
             //this.showLinks();
+        },
+
+        updateLinkSize : function(val){
+            val = +val;
+            linkWidth = val;
+
+            resizeDrawing();
+        },
+
+        updateClusterSpace : function(val){
+            val = +val;
+            clusterMargin = val;
+
+            resizeDrawing();
         },
 
         // TODO: move file functionality to another module
@@ -220,11 +273,12 @@ var LinkMatrix = (function(){
                 });
 
                 // remove compute node-connect links
-                // TODO: NOTE: I am temporarily removing "up" traffic (links)
-                data = data.filter(function (d){ return ((d.dir === 1) && (d.sy > 0)) ;});
+                // TODO: NOTE: I am temporarily removing "up" traffic (links with dir===0)
+                var switchLinkData = data.filter(function (d){ return ((d.dir === 1) && (d.sy > 0)) ;});
+                var nodeLinkData = data.filter(function (d){ return ((d.dir === 1) && (d.sy === 0)) ;});
 
-                LinkMatrix.updateLinks(data);
-                //LinkMatrix.showLinks();
+                LinkMatrix.updateLinks(switchLinkData);
+                LinkMatrix.showLinks();
             });
         },
 
@@ -234,15 +288,26 @@ var LinkMatrix = (function(){
     }
 })();
 
+/*
+ TODO: Move SETUP to different file
+ */
+
 function init(){
     Controls.populateFileNames();
     Controls.addLoadAction(LinkMatrix.loadData);
     Controls.addShowAction(LinkMatrix.showLinks);
-
+    Controls.addLinkSizeAction(LinkMatrix.updateLinkSize);
+    Controls.addClusterSpaceAction(LinkMatrix.updateClusterSpace);
     LinkMatrix.bindFileNameField(Controls.getFileField());
+
 
 }
 
 init();
+function showLinkSize(val){
+    console.log(val)
+}
+
+
 
 // python -m SimpleHTTPServer 8000
