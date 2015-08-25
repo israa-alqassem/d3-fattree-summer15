@@ -14,14 +14,16 @@ body {
 
 #leftBar{
     float: left;
-    width: 150px;
+    width: 200px;
     border: 2px solid #CCC047;
 }
 
 #canvas{
-    margin-left: 155px;
+    margin-left: 205px;
     margin-right: 105px;
     border: 2px solid #ccffcc;
+    overflow: auto;
+    height:80vh;
 }
 
 #rightBar{

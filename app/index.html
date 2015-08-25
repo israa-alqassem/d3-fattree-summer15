@@ -17,10 +17,20 @@
                     <table>
                         <tbody>
                         <tr>
-                            <td>Temp Clicker:</td>
+                            <td>Run:</td>
+                            <td><select id="run" content="test"></select></td>
+                        </tr>
+                        <tr >
+                            <td width="60%">Temp Clicker:</td>
                             <td>
                                 <button id="button-load">load</button>
                             </td>
+                        </tr>
+                        <tr>
+                            <td>Metric:</td>
+                            <td><select id="counter">
+                                <option value="traffic">traffic</option>
+                            </select></td>
                         </tr>
                         <tr>
                             <td>Temp Clicker:</td>
@@ -29,27 +39,15 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Run:</td>
-                            <td><select id="run" content="test"></select></td>
-                        </tr>
-                        <tr>
-                            <td>Counter:</td>
-                            <td><select id="counter"></select></td>
-                        </tr>
-                        <tr>
                             <td></td>
                             <td id="sub"></td>
-                        </tr>
-                        <tr>
-                            <td><label>Values colormap</label></td>
-                            <td  id="colormap"></td>
                         </tr>
                         <tr>
                             <td><label>Link size:</label></td>
                             <td  id="link-size-display"></td>
                         </tr>
                         <tr>
-                            <td colspan="2">
+                            <td colspan="2" align="right" >
                             <input type="range" min="5" max="20" id="range-link-size" value="10">
                             </td>
                         </tr>
@@ -58,9 +56,23 @@
                             <td  id="cluster-space-display"></td>
                         </tr>
                         <tr>
-                            <td colspan="2">
-                                <input type="range" min="15" max="40" id="range-cluster-space" value="15">
+                            <td colspan="2" align="right" >
+                                <input type="range" min="0" max="50" id="range-cluster-space" value="15">
                             </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><label>Traffic direction:</label></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="right">
+                                <input type="radio" name="traffic-direction" value="up" checked>Up &nbsp;
+                                <input type="radio" name="traffic-direction" value="down">Down &nbsp;
+                                <input type="radio" name="traffic-direction" value="down" disabled>Bi-dir
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Values colormap</label></td>
+                            <td  id="colormap"></td>
                         </tr>
                         </tbody>
                     </table>
