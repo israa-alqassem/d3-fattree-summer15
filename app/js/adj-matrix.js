@@ -162,7 +162,7 @@ var LinkMatrix = (function(){
         .style("opacity", 0);
 
     var NodesAggregate = (function(){
-        var group = [10, 10, 5, 10];
+        var group = [3, 3, 3, 3];
         var expanded = false;
 
         return{
