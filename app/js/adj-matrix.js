@@ -18,6 +18,7 @@ var Controls = (function(){
     var loadButton;
     var showButton;
     var trafficRadios;
+    var nodeRadios;
     var filesList;
     var linkSizeSlider;
     var linkSizeDisplay;
@@ -46,6 +47,7 @@ var Controls = (function(){
             clusterSpaceSlider = d3.select("#range-cluster-space");
             clusterSpaceDisplay = d3.select("#cluster-space-display");
             trafficRadios = d3.selectAll('input[name="traffic-direction"]');
+            nodeRadios = d3.selectAll('input[name="toggle-nodes"]');
 
             populateFileNames();
 
@@ -80,6 +82,13 @@ var Controls = (function(){
 
         addTrafficDirAction : function(action){
             trafficRadios.on("click", function(){
+                action(this.value);
+                console.log(this.value)
+            });
+        },
+
+        addNodeToggleAction : function(action){
+            nodeRadios.on("click", function(){
                 action(this.value);
                 console.log(this.value)
             });
@@ -127,6 +136,7 @@ var FileManager = (function(){
 
 var LinkMatrix = (function(){
     var dataset = [], switchLinkData, nodeLinkData;
+    var maxX, maxY;
     var location;
 
     // Layout specification variables
@@ -154,7 +164,7 @@ var LinkMatrix = (function(){
 
     // Private Methods
     var updateLinks, showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip, resizeDrawing;
-    var translateCoords, calcVizDimensions;
+    var translateCoords, calcNetDimensions, calcVizDimensions;
     var drawTriangle;
 
     var infotipDiv = d3.select("#canvas").append("div")
@@ -162,10 +172,47 @@ var LinkMatrix = (function(){
         .style("opacity", 0);
 
     var NodesAggregate = (function(){
-        var group = [3, 3, 3, 3];
-        var expanded = false;
+        var _group = [];
+        var group = [];
+        var hidden = false;
 
         return{
+            hide: function(){
+                if (nodeLinkData === null) return;
+                var i;
+
+                group = [];
+                for (i = 0; i < _group.length; i++){
+                    group.push(0);
+                }
+            },
+
+            expand: function(){
+                if (nodeLinkData === null) return;
+
+                group = _group;
+            },
+
+            collapse: function(){
+                if (nodeLinkData === null) return;
+
+                // Do something special
+            },
+
+            show: function(){
+                if (nodeLinkData === null) return;
+
+                var i = 0;
+                for (i = 0; i < 4; i++){
+                    d3.select("#canvas").append("div")
+                        .attr("class", "nodechart")
+                        .style("bottom", vizHeight)
+                        .style("right", function(i){return (NodesAggregate.getGroupWidth(i) * i) + clusterWidth*i})
+                        .style("width", this.getGroupWidth(i))
+                        .style("height", this.getGroupWidth(i));
+                }
+            },
+
             getGroupSize: function(num){
                 return group[num];
             },
@@ -176,6 +223,24 @@ var LinkMatrix = (function(){
 
             getGroupCount: function(){
                 return group.length;
+            },
+
+            createGroups: function(){
+                if (nodeLinkData === null) return;
+
+                var size = 18;
+                var groupCount;
+                var i = 0;
+
+                _group = [];
+                groupCount = Math.floor(maxX/ (groupSizeY[0]-1));
+
+                for (i = 0; i < groupCount; i++){
+                    _group.push(size);
+                }
+
+                group = _group;
+                console.log("Node group count: " + groupCount);
             }
         }
     })();
@@ -251,15 +316,15 @@ var LinkMatrix = (function(){
 
         cmap = d3.scale.linear().domain([0, max/2,    max]).range(["white", "green", "black"]);
 
-        //d3.select("#links")
-        //    .selectAll(".link")
-        //    .remove();
+        calcNetDimensions();
+        calcVizDimensions();
 
         links = d3.select("#links")
             .selectAll(".link")
             .data(switchLinkData, function(d){return d.id;});
 
-        calcVizDimensions();
+
+
         LinkMatrix.showLinks();
     };
 
@@ -306,6 +371,13 @@ var LinkMatrix = (function(){
             .style("opacity", 0);
     };
 
+    calcNetDimensions = function(){
+        maxX = d3.max(switchLinkData, function(d){return d.sx});
+
+        NodesAggregate.createGroups();
+        console.log("Max X: " + maxX);
+    };
+
     calcVizDimensions = function(){
         var i = 0;
         linkWidth_t = (linkWidth+linkMargin);
@@ -347,7 +419,7 @@ var LinkMatrix = (function(){
             .attr("width", linkWidth)
             .attr("height", linkWidth);
             //.style("fill", function(d) { return cmap(d.data); });
-
+        NodesAggregate.show();
     };
 
     return {
@@ -405,6 +477,19 @@ var LinkMatrix = (function(){
             });
 
             updateLinks();
+        },
+
+        toggleNodes: function(state){
+            if (state === "hide"){
+                NodesAggregate.hide();
+            } else if (state === "expand"){
+                NodesAggregate.expand();
+            } else if (state === "collapse"){
+                NodesAggregate.collapse();
+            }
+
+            console.log("Toggling... " + state);
+            resizeDrawing();
         }
     }
 })();
@@ -421,6 +506,7 @@ function init(){
     Controls.addLinkSizeAction(LinkMatrix.updateLinkSize);
     Controls.addClusterSpaceAction(LinkMatrix.updateClusterSpace);
     Controls.addTrafficDirAction(LinkMatrix.updateTrafficDir);
+    Controls.addNodeToggleAction(LinkMatrix.toggleNodes);
 
     FileManager.addConsumer(LinkMatrix);
 
