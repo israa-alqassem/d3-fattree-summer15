@@ -150,7 +150,7 @@ var LinkMatrix = (function(){
     var maxLevel = 0;
 
     // D3 object variables
-    var canvas, adjMatrix, links;
+    var canvas, adjMatrix, links = null;
 
     // Private Methods
     var updateLinks, showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip, resizeDrawing;
@@ -251,13 +251,13 @@ var LinkMatrix = (function(){
 
         cmap = d3.scale.linear().domain([0, max/2,    max]).range(["white", "green", "black"]);
 
-        d3.select("#links")
-            .selectAll(".link")
-            .remove();
+        //d3.select("#links")
+        //    .selectAll(".link")
+        //    .remove();
 
         links = d3.select("#links")
             .selectAll(".link")
-            .data(switchLinkData);
+            .data(switchLinkData, function(d){return d.id;});
 
         calcVizDimensions();
         LinkMatrix.showLinks();
@@ -281,14 +281,14 @@ var LinkMatrix = (function(){
             .on("mouseout", function(d) { hideInfoTip(); });
     };
 
-    canvas.append("g")
-        .append("rect")
-        .attr("x", clusterWidth + 20)
-        .attr("y",  displayPadding)
-        .attr("width", clusterWidth)
-        .attr("height", clusterWidth)
-        .style("fill", "lightblue")
-        .style("stroke", "lightblue");
+    //canvas.append("g")
+    //    .append("rect")
+    //    .attr("x", clusterWidth + 20)
+    //    .attr("y",  displayPadding)
+    //    .attr("width", clusterWidth)
+    //    .attr("height", clusterWidth)
+    //    .style("fill", "lightblue")
+    //    .style("stroke", "lightblue");
 
     showInfoTip = function(d){
         infotipDiv.transition()
@@ -338,6 +338,8 @@ var LinkMatrix = (function(){
 
     resizeDrawing = function(){
         calcVizDimensions();
+
+        if (links === null) return;
 
         links.transition()
             .attr("x", function(d) { return translateCoords(d.sx, d.sy, d.tx, d.ty)[0]; })
