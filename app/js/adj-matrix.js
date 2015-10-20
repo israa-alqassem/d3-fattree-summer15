@@ -83,14 +83,14 @@ var Controls = (function(){
         addTrafficDirAction : function(action){
             trafficRadios.on("click", function(){
                 action(this.value);
-                console.log(this.value)
+                //console.log(this.value)
             });
         },
 
         addNodeToggleAction : function(action){
             nodeRadios.on("click", function(){
                 action(this.value);
-                console.log(this.value)
+                //console.log(this.value)
             });
         }
     }
@@ -141,8 +141,8 @@ var LinkMatrix = (function(){
 
     // Layout specification variables
     var linkMargin = 0;
-    var linkWidth = 10;                                         // width of link in pixels
-    var nodeWidth = 10;
+    var linkWidth = 8;                                         // width of link in pixels
+    var nodeWidth = 8;
     //var linkRadius = linkWidth/3;                               // for square with rounded corners
 
     var groupSizeX = 18;                                         // number of links to display horizontally/vertically per group
@@ -152,18 +152,23 @@ var LinkMatrix = (function(){
     var displayPadding = 10;
 
     var cmap;
+    var cmax;
+    var colorId = 0;
+    var colorSet1 = ["white", "white", "white", "white"];
+    var colorSet2 = ["red", "green", "blue", "green"];
+    var colorSet3 = ["black", "black", "black", "red"];
 
     // derived/dynamic layout variables
     var vizHeight = 0;
     var vizWidth = 0;
-    var linkWidth_t =0;
+    var linkWidth_t = 0;
     var maxLevel = 0;
 
     // D3 object variables
     var canvas, adjMatrix, links = null;
 
     // Private Methods
-    var updateLinks, showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip, resizeDrawing;
+    var updateLinks, showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip, resizeDrawing, recolorDrawing;
     var translateCoords, calcNetDimensions, calcVizDimensions;
     var drawTriangle;
 
@@ -174,7 +179,13 @@ var LinkMatrix = (function(){
     var NodesAggregate = (function(){
         var _group = [];
         var group = [];
-        var hidden = false;
+        var hidden = true;
+
+        var translateNodeCoord;
+
+        translateNodeCoord = function(x){
+            return (NodesAggregate.getGroupWidth(x) * x) + clusterWidth*x + clusterMargin*x;
+        };
 
         return{
             hide: function(){
@@ -185,12 +196,21 @@ var LinkMatrix = (function(){
                 for (i = 0; i < _group.length; i++){
                     group.push(0);
                 }
+
+                console.log("hiding");
+
+                d3.selectAll(".nodechart").transition()
+                    .style("background-color", "rgba(173, 216, 230, 0)");
+
+
+                hidden = true;
             },
 
             expand: function(){
                 if (nodeLinkData === null) return;
 
                 group = _group;
+                hidden = false;
             },
 
             collapse: function(){
@@ -200,17 +220,15 @@ var LinkMatrix = (function(){
             },
 
             show: function(){
-                if (nodeLinkData === null) return;
+                if (nodeLinkData === null || hidden ) return;
 
-                var i = 0;
-                for (i = 0; i < 4; i++){
-                    d3.select("#canvas").append("div")
-                        .attr("class", "nodechart")
-                        .style("bottom", vizHeight)
-                        .style("right", function(i){return (NodesAggregate.getGroupWidth(i) * i) + clusterWidth*i})
-                        .style("width", this.getGroupWidth(i))
-                        .style("height", this.getGroupWidth(i));
-                }
+
+                d3.selectAll(".nodechart")
+                    .style("top",  displayPadding+0+"px")
+                    .style("left", function(d){return translateNodeCoord(d) + "px"})
+                    .style("background-color", "rgba(173, 216, 230, 1)");
+
+
             },
 
             getGroupSize: function(num){
@@ -230,17 +248,39 @@ var LinkMatrix = (function(){
 
                 var size = 18;
                 var groupCount;
-                var i = 0;
+                var i;
 
                 _group = [];
                 groupCount = Math.floor(maxX/ (groupSizeY[0]-1));
+
+                d3.selectAll(".nodechart").remove();
 
                 for (i = 0; i < groupCount; i++){
                     _group.push(size);
                 }
 
                 group = _group;
-                console.log("Node group count: " + groupCount);
+
+                for (i = 0; i < groupCount; i++){
+                    d3.select("#canvas").append("div")
+                        .attr("class", "nodechart")
+                        .style("position", "absolute")
+                        .style("top", displayPadding+0+"px")
+                        .style("left", function(num){
+                            return (NodesAggregate.getGroupWidth(num) * num) + clusterWidth*num + clusterMargin*num}(i)
+                            + "px")
+                        .style("width", this.getGroupWidth(i)+"px")
+                        .style("height", this.getGroupWidth(i)+"px")
+                        .style("fill", "black")
+                        .style("stroke", "lightblue")
+                        .datum(i);
+                }
+
+                if (hidden){
+                    this.hide();
+                }
+
+
             }
         }
     })();
@@ -289,7 +329,7 @@ var LinkMatrix = (function(){
         }
         maxLevel = Math.max(newY, maxLevel);
         // flip image along the horizontal
-        newY = vizHeight  - newY;
+        //newY = vizHeight  - newY;
 
         // add display padding
         newX = newX + displayPadding;
@@ -311,10 +351,11 @@ var LinkMatrix = (function(){
 
     updateLinks = function(){
         // Find max value and map values over colour range
-        var max = d3.max(switchLinkData, function(d) { return d.data; });
-        console.log("max data:  " + max);
+        cmax = d3.max(switchLinkData, function(d) { return d.data; });
+        console.log("max data:  " + cmax);
 
-        cmap = d3.scale.linear().domain([0, max/2,    max]).range(["white", "green", "black"]);
+        cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range([colorSet1[colorId], colorSet2[colorId], colorSet3[colorId]]);
+        //cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range(["white", "red", "black"]);
 
         calcNetDimensions();
         calcVizDimensions();
@@ -382,6 +423,8 @@ var LinkMatrix = (function(){
         var i = 0;
         linkWidth_t = (linkWidth+linkMargin);
 
+        clusterWidth = linkWidth_t * groupSizeX;
+
         // TODO: this is off by linkWidth/2
         vizHeight = 0;
         for (i = 0; i < groupSizeY.length; i++){
@@ -419,6 +462,24 @@ var LinkMatrix = (function(){
             .attr("width", linkWidth)
             .attr("height", linkWidth);
             //.style("fill", function(d) { return cmap(d.data); });
+
+        NodesAggregate.show();
+    };
+
+    recolorDrawing = function(){
+
+        if (links === null) return;
+
+        colorId = colorId + 1;
+        if (colorId == 4){
+            colorId = 0;
+        }
+
+        cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range([colorSet1[colorId], colorSet2[colorId], colorSet3[colorId]]);
+
+        links.transition().duration(1000)
+            .style("fill", function(d) { return cmap(d.data); });
+
         NodesAggregate.show();
     };
 
@@ -434,6 +495,10 @@ var LinkMatrix = (function(){
             if (switchLinkData){
                 showSquaresLink();
             }
+        },
+
+        changeColor : function(){
+            recolorDrawing();
         },
 
         updateLinkSize : function(val){
@@ -502,7 +567,7 @@ var LinkMatrix = (function(){
 function init(){
     Controls.init();
     Controls.addLoadAction(FileManager.loadData);
-    Controls.addShowAction(LinkMatrix.showLinks);   // TODO: remove "show" button
+    Controls.addShowAction(LinkMatrix.changeColor);   // TODO: remove "show" button
     Controls.addLinkSizeAction(LinkMatrix.updateLinkSize);
     Controls.addClusterSpaceAction(LinkMatrix.updateClusterSpace);
     Controls.addTrafficDirAction(LinkMatrix.updateTrafficDir);

@@ -19,6 +19,7 @@ body {
 }
 
 #canvas{
+    position: relative;
     margin-left: 205px;
     margin-right: 105px;
     border: 2px solid #ccffcc;
@@ -43,7 +44,7 @@ body {
 }
 
 div.infotip {
-    position: absolute;
+    position: fixed;
     text-align: left;
     min-width: 60px;
     min-height: 28px;
@@ -61,9 +62,13 @@ div.infotip {
     text-align: right;
     padding: 3px;
     margin: 1px;
-    color: white;
+    color: black;
 }
 
 .nodechart{
-    position: absolute;
+
+    //background-color: steelblue;
+
+    //color: black;
+
 }
