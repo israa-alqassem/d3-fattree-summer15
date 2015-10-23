@@ -2,132 +2,10 @@
  * Created by kevin on 8/5/15.
  */
 
-function formatBytes(bytes) {
-    if(bytes < 1024) return bytes + " B";
-    else if(bytes < 1048576) return(bytes / 1024).toFixed(3) + " KB";
-    else if(bytes < 1073741824) return(bytes / 1048576).toFixed(3) + " MB";
-    else return(bytes / 1073741824).toFixed(3) + " GB";
-}
-
-var logger = function() { return console.log("log")};
-
-/*
-TODO: Move CONTROLS to different file
- */
-var Controls = (function(){
-    var loadButton;
-    var showButton;
-    var trafficRadios;
-    var nodeRadios;
-    var filesList;
-    var linkSizeSlider;
-    var linkSizeDisplay;
-    var clusterSpaceSlider;
-    var clusterSpaceDisplay;
-
-    // Private functions
-    var populateFileNames;
-
-    populateFileNames = function(){
-        //filesList.append("option")
-        //    .text("")
-        //    .attr("value", "");
-        filesList.append("option")
-            .text("milc.csv")
-            .attr("value", "../data/milc.csv");
-    };
-
-    return{
-        init: function(){
-            loadButton = d3.select("#button-load");
-            showButton = d3.select("#button-show");
-            filesList = d3.select("#run");
-            linkSizeSlider = d3.select("#range-link-size");
-            linkSizeDisplay = d3.select("#link-size-display");
-            clusterSpaceSlider = d3.select("#range-cluster-space");
-            clusterSpaceDisplay = d3.select("#cluster-space-display");
-            trafficRadios = d3.selectAll('input[name="traffic-direction"]');
-            nodeRadios = d3.selectAll('input[name="toggle-nodes"]');
-
-            populateFileNames();
-
-            linkSizeDisplay.text(linkSizeSlider.node().value);
-            clusterSpaceDisplay.text(clusterSpaceSlider.node().value);
-        },
-
-        addLoadAction : function(action) {
-            var loadFile = function(){
-                action(filesList.node().value);
-            };
-            loadButton.on("click", loadFile);
-        },
-
-        addShowAction : function(action){
-            showButton.on("click", action );
-        },
-
-        addLinkSizeAction : function(action){
-            linkSizeSlider.on("input", function(){
-                action(this.value);
-                linkSizeDisplay.text(this.value);
-            });
-        },
-
-        addClusterSpaceAction : function(action){
-            clusterSpaceSlider.on("input", function(){
-                action(this.value);
-                clusterSpaceDisplay.text(this.value);
-            });
-        },
-
-        addTrafficDirAction : function(action){
-            trafficRadios.on("click", function(){
-                action(this.value);
-                //console.log(this.value)
-            });
-        },
-
-        addNodeToggleAction : function(action){
-            nodeRadios.on("click", function(){
-                action(this.value);
-                //console.log(this.value)
-            });
-        }
-    }
-})();
 
 /*
  TODO: Move FILEMANAGER to different file
  */
-
-var FileManager = (function(){
-
-    // private variables
-    var consumer;
-
-    return {
-        loadData: function (filename) {
-            d3.csv(filename, function (error, data) {
-                var count = 0;
-                data.forEach(function (d) {
-                    d.sx = +d.sx;
-                    d.sy = +d.sy;
-                    d.tx = +d.tx;
-                    d.ty = +d.ty;
-                    d.dir = +d.dir;
-                    d.data = +d.data;
-                    count = count + 1;
-                });
-
-                consumer.consume(data);
-            });
-        },
-
-        addConsumer: function(object){
-            consumer = object;
-        }
-    };
-})();
 
 
 /*
@@ -558,29 +436,6 @@ var LinkMatrix = (function(){
         }
     }
 })();
-
-
-/*
- TODO: Move SETUP/INIT to different file
- */
-
-function init(){
-    Controls.init();
-    Controls.addLoadAction(FileManager.loadData);
-    Controls.addShowAction(LinkMatrix.changeColor);   // TODO: remove "show" button
-    Controls.addLinkSizeAction(LinkMatrix.updateLinkSize);
-    Controls.addClusterSpaceAction(LinkMatrix.updateClusterSpace);
-    Controls.addTrafficDirAction(LinkMatrix.updateTrafficDir);
-    Controls.addNodeToggleAction(LinkMatrix.toggleNodes);
-
-    FileManager.addConsumer(LinkMatrix);
-
-}
-
-init();
-function showLinkSize(val){
-    console.log(val)
-}
 
 
 
