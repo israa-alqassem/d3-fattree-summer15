@@ -2,13 +2,8 @@
  * Created by kevin on 10/22/15.
  */
 
-
-var logger = function() { return console.log("log")};
-
-/*
- TODO: Move CONTROLS to different file
- */
-var Controls = (function(){
+define(function(require) {
+    var d3 = require("d3");
     var loadButton;
     var showButton;
     var trafficRadios;
@@ -31,8 +26,9 @@ var Controls = (function(){
             .attr("value", "../data/milc.csv");
     };
 
-    return{
-        init: function(){
+    var control = {};
+
+    control.init = function(){
             loadButton = d3.select("#button-load");
             showButton = d3.select("#button-show");
             filesList = d3.select("#run");
@@ -47,45 +43,48 @@ var Controls = (function(){
 
             linkSizeDisplay.text(linkSizeSlider.node().value);
             clusterSpaceDisplay.text(clusterSpaceSlider.node().value);
-        },
+    };
 
-        addLoadAction : function(action) {
+    control.addLoadAction = function(action) {
             var loadFile = function(){
                 action(filesList.node().value);
             };
             loadButton.on("click", loadFile);
-        },
+    };
 
-        addShowAction : function(action){
+    control.addShowAction = function(action){
             showButton.on("click", action );
-        },
+    };
 
-        addLinkSizeAction : function(action){
+    control.addLinkSizeAction = function(action){
             linkSizeSlider.on("input", function(){
                 action(this.value);
                 linkSizeDisplay.text(this.value);
             });
-        },
+    };
 
-        addClusterSpaceAction : function(action){
+    control.addClusterSpaceAction = function(action){
             clusterSpaceSlider.on("input", function(){
                 action(this.value);
                 clusterSpaceDisplay.text(this.value);
             });
-        },
+    };
 
-        addTrafficDirAction : function(action){
+    control.addTrafficDirAction = function(action){
             trafficRadios.on("click", function(){
                 action(this.value);
                 //console.log(this.value)
             });
-        },
+    };
 
-        addNodeToggleAction : function(action){
+    control.addNodeToggleAction = function(action){
             nodeRadios.on("click", function(){
                 action(this.value);
                 //console.log(this.value)
             });
-        }
-    }
-})();
+    };
+
+    return control;
+});
+
+//var logger = function() { return console.log("log")};

@@ -14,7 +14,8 @@
   ],
   "dependencies": {
     "d3": "~3.5.6",
-    "require": "*"
+    "require": "*",
+    "requirejs": "~2.1.20"
   },
   "description": "Fat-tree performance viz",
   "main": "app.js",
