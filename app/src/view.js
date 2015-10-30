@@ -12,36 +12,11 @@ function formatBytes(bytes) {
 /*
  TODO: Move LINKMATRIX to different file
  */
-var FileManager = (function(){
 
-    // private variables
-    var consumer;
 
-    return {
-        loadData: function (filename) {
-            d3.csv(filename, function (error, data) {
-                var count = 0;
-                data.forEach(function (d) {
-                    d.sx = +d.sx;
-                    d.sy = +d.sy;
-                    d.tx = +d.tx;
-                    d.ty = +d.ty;
-                    d.dir = +d.dir;
-                    d.data = +d.data;
-                    count = count + 1;
-                });
+define(function(require){
+    var d3 = require('d3');
 
-                consumer.consume(data);
-            });
-        },
-
-        addConsumer: function(object){
-            consumer = object;
-        }
-    };
-})();
-
-var LinkMatrix = (function(){
     var dataset = [], switchLinkData, nodeLinkData;
     var maxX, maxY;
     var location;
@@ -273,7 +248,13 @@ var LinkMatrix = (function(){
 
 
 
-        LinkMatrix.showLinks();
+        showLinks();
+    };
+
+    var showLinks = function(){
+        if (switchLinkData){
+            showSquaresLink();
+        }
     };
 
     showSquaresLink = function(){
@@ -390,81 +371,79 @@ var LinkMatrix = (function(){
         NodesAggregate.show();
     };
 
-    return {
+    var view = {};
+    view.consume = function(data){
+        dataset = data;
 
-        consume: function(data){
-            dataset = data;
+        this.updateTrafficDir("up");
+    };
 
-            this.updateTrafficDir("up");
-        },
+    view.showLinks = function(){
+        showLinksk();
+    };
 
-        showLinks : function(){
-            if (switchLinkData){
-                showSquaresLink();
-            }
-        },
+    view.changeColor = function() {
+        recolorDrawing();
+    };
 
-        changeColor : function(){
-            recolorDrawing();
-        },
+    view.updateLinkSize = function(val){
+        val = +val;
+        linkWidth = val;
 
-        updateLinkSize : function(val){
-            val = +val;
-            linkWidth = val;
+        resizeDrawing();
+    };
 
-            resizeDrawing();
-        },
+    view.updateClusterSpace = function(val){
+        val = +val;
+        clusterMargin = val;
 
-        updateClusterSpace : function(val){
-            val = +val;
-            clusterMargin = val;
+        resizeDrawing();
+    };
 
-            resizeDrawing();
-        },
+    view.updateTrafficDir = function(val){
+        var dir = 0; // shows "up" values by default
 
-        updateTrafficDir : function(val){
-            var dir = 0; // shows "up" values by default
-
-            if(val === "up"){
-                dir = 0;
-            } else if(val === "down"){
-                dir = 1;
-            } else if(val === "bi"){
-                switchLinkData = dataset.filter(function (d) {
-                    return (d.sy > 0);
-                });
-                nodeLinkData = dataset.filter(function (d) {
-                    return (d.sy === 0);
-                });
-
-                updateLinks();
-                return;
-            }
-
+        if(val === "up"){
+            dir = 0;
+        } else if(val === "down"){
+            dir = 1;
+        } else if(val === "bi"){
             switchLinkData = dataset.filter(function (d) {
-                return ((d.dir === dir) && (d.sy > 0));
+                return (d.sy > 0);
             });
             nodeLinkData = dataset.filter(function (d) {
-                return ((d.dir === dir) && (d.sy === 0));
+                return (d.sy === 0);
             });
 
             updateLinks();
-        },
-
-        toggleNodes: function(state){
-            if (state === "hide"){
-                NodesAggregate.hide();
-            } else if (state === "expand"){
-                NodesAggregate.expand();
-            } else if (state === "collapse"){
-                NodesAggregate.collapse();
-            }
-
-            console.log("Toggling... " + state);
-            resizeDrawing();
+            return;
         }
-    }
-})();
+
+        switchLinkData = dataset.filter(function (d) {
+            return ((d.dir === dir) && (d.sy > 0));
+        });
+        nodeLinkData = dataset.filter(function (d) {
+            return ((d.dir === dir) && (d.sy === 0));
+        });
+
+        updateLinks();
+    };
+
+    view.toggleNodes = function(state){
+        if (state === "hide"){
+            NodesAggregate.hide();
+        } else if (state === "expand"){
+            NodesAggregate.expand();
+        } else if (state === "collapse"){
+            NodesAggregate.collapse();
+        }
+
+        console.log("Toggling... " + state);
+        resizeDrawing();
+    };
+
+    return view;
+});
 
 
 
