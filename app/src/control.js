@@ -4,6 +4,7 @@
 
 define(function(require) {
     var d3 = require("d3");
+
     var loadButton;
     var showButton;
     var trafficRadios;
