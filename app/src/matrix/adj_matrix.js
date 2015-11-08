@@ -7,12 +7,6 @@
  */
 
 
-function formatBytes(bytes) {
-    if(bytes < 1024) return bytes + " B";
-    else if(bytes < 1048576) return(bytes / 1024).toFixed(3) + " KB";
-    else if(bytes < 1073741824) return(bytes / 1048576).toFixed(3) + " MB";
-    else return(bytes / 1073741824).toFixed(3) + " GB";
-}
 /*
  TODO: Move LINKMATRIX to different file
  */
@@ -58,6 +52,14 @@ define(function(require){
     var translateCoords, calcNetDimensions, calcVizDimensions;
     var drawTriangle;
 
+
+    var formatBytes = function(bytes) {
+        if(bytes < 1024) return bytes + " B";
+        else if(bytes < 1048576) return(bytes / 1024).toFixed(3) + " KB";
+        else if(bytes < 1073741824) return(bytes / 1048576).toFixed(3) + " MB";
+        else return(bytes / 1073741824).toFixed(3) + " GB";
+    };
+
     var infotipDiv = d3.select("#canvas").append("div")
         .attr("class", "infotip")
         .style("opacity", 0);
@@ -66,11 +68,28 @@ define(function(require){
         var _group = [];
         var group = [];
         var hidden = true;
+        var nodedata = [];
 
         var translateNodeCoord;
+        var transformData;
 
         translateNodeCoord = function(x){
             return (NodesAggregate.getGroupWidth(x) * x) + clusterWidth*x + clusterMargin*x;
+        };
+
+        transformData = function(){
+            var i;
+            var count = 0;
+
+            for(i = 0; i < maxX/groupSizeX; i++){
+                nodedata[i] = [];
+            }
+
+            nodeLinkData.forEach(function (d) {
+                nodedata[d.tx].push(d.data);
+                count = count + 1;
+            });
+            console.log("Nodes processed: " + count);
         };
 
         return{
@@ -83,7 +102,9 @@ define(function(require){
                     group.push(0);
                 }
 
-                console.log("hiding");
+                console.log("hidin");
+
+                transformData();
 
                 d3.selectAll(".nodechart").transition()
                     .style("background-color", "rgba(173, 216, 230, 0)");
@@ -165,8 +186,7 @@ define(function(require){
                 if (hidden){
                     this.hide();
                 }
-
-
+                transformData();
             }
         }
     })();
@@ -308,7 +328,7 @@ define(function(require){
         maxX = d3.max(switchLinkData, function(d){return d.sx});
 
         NodesAggregate.createGroups();
-        console.log("Max X: " + maxX);
+        console.log("Max X is: " + maxX);
     };
 
     calcVizDimensions = function(){
