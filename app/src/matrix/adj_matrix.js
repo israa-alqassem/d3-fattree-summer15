@@ -48,7 +48,7 @@ define(function(require){
     var canvas, adjMatrix, links = null;
 
     // Private Methods
-    var updateDrawing, updateLinks, updateNodes;
+    var updateDrawing, updateLinks, updateNodes, setupNodes;
     var showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip, resizeDrawing, recolorDrawing;
     var translateCoords, calcNetDimensions, calcVizDimensions;
     var drawTriangle;
@@ -70,12 +70,15 @@ define(function(require){
         var group = [];
         var hidden = true;
         var nodedata = [];
-        var nodebars;
         var nodechart;
 
-
+        var createGroups;
         var translateNodeCoord;
         var transformData;
+
+        var nodes;
+        var nodebars;
+        var nodegroups;
 
         translateNodeCoord = function(x){
             return (NodesAggregate.getGroupWidth(x) * x) + clusterWidth*x + clusterMargin*x;
@@ -96,7 +99,48 @@ define(function(require){
             console.log("Nodes processed: " + count);
         };
 
+        createGroups = function(){
+            if (nodeLinkData === null) return;
+
+            var size = groupSizeX;
+            var groupCount;
+            var i, gids = [];
+
+            _group = [];
+            groupCount = Math.floor(maxX/ (groupSizeY[0]-1));
+
+            for (i = 0; i < groupCount; i++){
+                gids.push(i);
+                _group.push(size);
+            }
+
+            group = _group;
+            transformData();
+
+            d3.selectAll('nodegroup').remove();
+
+            nodegroups = d3.select("#nodes").selectAll("nodegroup")
+                .data(gids);
+
+            if (hidden){
+                NodesAggregate.hide();
+            }
+        };
+
         return{
+            init: function(){
+                adjMatrix.append('g')
+                    .attr('id', 'nodes');
+            },
+
+            setup: function(){
+                createGroups();
+            },
+
+            update: function(){
+                this.show();
+            },
+
             hide: function(){
                 if (nodeLinkData === null) return;
                 var i;
@@ -133,11 +177,22 @@ define(function(require){
             show: function(){
                 if (nodeLinkData === null || hidden ) return;
 
+                nodegroups.exit().remove();
+                nodegroups.enter().append('rect')
+                    .attr('class', 'nodegroup')
+                    .attr("y", displayPadding+0)
+                    .attr("x", function(d){
+                        console.log("style" +d); return (NodesAggregate.getGroupWidth(d) * d) + clusterWidth*d + clusterMargin*d})
+                    .attr("width", function(d){ console.log("width" +d); return NodesAggregate.getGroupWidth(d)})
+                    .attr("height", function(d){console.log("height" +d); return NodesAggregate.getGroupWidth(d)})
+                    .style("fill", "lightblue")
+                    .style("stroke", "black");
 
-                d3.selectAll(".nodechart")
-                    .style("top",  displayPadding+0+"px")
-                    .style("left", function(d){return translateNodeCoord(d) + "px"})
-                    .style("background-color", "rgba(173, 216, 230, 1)");
+
+                //d3.selectAll(".nodechart")
+                //    .style("top",  displayPadding+0+"px")
+                //    .style("left", function(d){return translateNodeCoord(d) + "px"})
+                //    .style("background-color", "rgba(173, 216, 230, 1)");
 
 
             },
@@ -152,45 +207,6 @@ define(function(require){
 
             getGroupCount: function(){
                 return group.length;
-            },
-
-            createGroups: function(){
-                if (nodeLinkData === null) return;
-
-                var size = 18;
-                var groupCount;
-                var i;
-
-                _group = [];
-                groupCount = Math.floor(maxX/ (groupSizeY[0]-1));
-
-                d3.selectAll(".nodechart").remove();
-
-                for (i = 0; i < groupCount; i++){
-                    _group.push(size);
-                }
-
-                group = _group;
-
-                for (i = 0; i < groupCount; i++){
-                    d3.select("#canvas").append("div")
-                        .attr("class", "nodechart")
-                        .style("position", "absolute")
-                        .style("top", displayPadding+0+"px")
-                        .style("left", function(num){
-                            return (NodesAggregate.getGroupWidth(num) * num) + clusterWidth*num + clusterMargin*num}(i)
-                        + "px")
-                        .style("width", this.getGroupWidth(i)+"px")
-                        .style("height", this.getGroupWidth(i)+"px")
-                        .style("fill", "black")
-                        .style("stroke", "lightblue")
-                        .datum(i);
-                }
-
-                if (hidden){
-                    this.hide();
-                }
-                transformData();
             }
         }
     })();
@@ -259,11 +275,7 @@ define(function(require){
     adjMatrix.append("g")
         .attr("id", "links");
 
-
-
-    updateNodes = function(){
-
-    };
+    NodesAggregate.init();
 
     var showLinks = function(){
         if (switchLinkData){
@@ -317,7 +329,7 @@ define(function(require){
     calcNetDimensions = function(){
         maxX = d3.max(switchLinkData, function(d){return d.sx});
 
-        NodesAggregate.createGroups();
+        NodesAggregate.update();
         console.log("Max X is: " + maxX);
     };
 
@@ -385,6 +397,10 @@ define(function(require){
         NodesAggregate.show();
     };
 
+    setupNodes = function(){
+        NodesAggregate.setup();
+    };
+
     updateLinks = function(){
         // Find max value and map values over colour range
 
@@ -408,7 +424,7 @@ define(function(require){
         calcVizDimensions();
 
         updateLinks();
-        updateNodes();
+        setupNodes();
     };
 
     var adj = {};

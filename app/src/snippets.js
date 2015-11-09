@@ -174,3 +174,16 @@ translateCoords = function (sx, sy, tx, ty){
  newY = (newY * (linkWidth+linkMargin)) + Math.floor((youter/groupSize) * clusterMargin);
  return [ newX+ 20, newY + 10 ]
 };
+
+.attr("class", "nodechart")
+    .style("position", "absolute")
+    .style("top", displayPadding+0+"px")
+    .style("left", function(num){
+     return (NodesAggregate.getGroupWidth(num) * num) + clusterWidth*num + clusterMargin*num}(i)
+    + "px")
+    .style("width", this.getGroupWidth(i)+"px")
+    .style("height", this.getGroupWidth(i)+"px")
+    .style("fill", "black")
+    .style("stroke", "lightblue")
+    .datum(i);
+
