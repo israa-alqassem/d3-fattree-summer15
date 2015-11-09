@@ -57,17 +57,17 @@ div.infotip {
 }
 
 .nodechart div {
-    font: 10px sans-serif;
+    //font: 10px sans-serif;
     background-color: steelblue;
     text-align: right;
-    padding: 3px;
+    //padding: 3px;
     margin: 1px;
     color: black;
 }
 
 .nodechart{
 
-    //background-color: steelblue;
+    background-color: lightgray;
 
     //color: black;
 

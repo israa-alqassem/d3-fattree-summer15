@@ -15,7 +15,7 @@
 define(function(require){
     var d3 = require('d3');
 
-    var dataset = [], switchLinkData, nodeLinkData;
+    var switchLinkData, nodeLinkData;
     var maxX, maxY;
     var location;
 
@@ -48,7 +48,8 @@ define(function(require){
     var canvas, adjMatrix, links = null;
 
     // Private Methods
-    var updateLinks, showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip, resizeDrawing, recolorDrawing;
+    var updateDrawing, updateLinks, updateNodes;
+    var showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip, resizeDrawing, recolorDrawing;
     var translateCoords, calcNetDimensions, calcVizDimensions;
     var drawTriangle;
 
@@ -69,6 +70,9 @@ define(function(require){
         var group = [];
         var hidden = true;
         var nodedata = [];
+        var nodebars;
+        var nodechart;
+
 
         var translateNodeCoord;
         var transformData;
@@ -81,10 +85,10 @@ define(function(require){
             var i;
             var count = 0;
 
-            for(i = 0; i < maxX/groupSizeX; i++){
+            for(i = 0; i <= maxX; i++){
                 nodedata[i] = [];
             }
-
+            console.log(maxX);
             nodeLinkData.forEach(function (d) {
                 nodedata[d.tx].push(d.data);
                 count = count + 1;
@@ -255,24 +259,10 @@ define(function(require){
     adjMatrix.append("g")
         .attr("id", "links");
 
-    updateLinks = function(){
-        // Find max value and map values over colour range
-        cmax = d3.max(switchLinkData, function(d) { return d.data; });
-        console.log("max data:  " + cmax);
-
-        cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range([colorSet1[colorId], colorSet2[colorId], colorSet3[colorId]]);
-        //cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range(["white", "red", "black"]);
-
-        calcNetDimensions();
-        calcVizDimensions();
-
-        links = d3.select("#links")
-            .selectAll(".link")
-            .data(switchLinkData, function(d){return d.id;});
 
 
+    updateNodes = function(){
 
-        showLinks();
     };
 
     var showLinks = function(){
@@ -395,15 +385,43 @@ define(function(require){
         NodesAggregate.show();
     };
 
+    updateLinks = function(){
+        // Find max value and map values over colour range
+
+
+        links = d3.select("#links")
+            .selectAll(".link")
+            .data(switchLinkData, function(d){return d.id;});
+
+
+        showLinks();
+    };
+
+    updateDrawing = function(){
+        cmax = d3.max(switchLinkData, function(d) { return d.data; });
+        console.log("max data:  " + cmax);
+
+        cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range([colorSet1[colorId], colorSet2[colorId], colorSet3[colorId]]);
+        //cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range(["white", "red", "black"]);
+
+        calcNetDimensions();
+        calcVizDimensions();
+
+        updateLinks();
+        updateNodes();
+    };
+
     var adj = {};
     adj.consume = function(data){
-        dataset = data;
+        switchLinkData = data.switch;
+        nodeLinkData = data.node;
 
-        this.updateTrafficDir("up");
+        updateDrawing();
+        //console.log("Trigger display: adj.consume");
     };
 
     adj.showLinks = function(){
-        showLinksk();
+        showLinks();
     };
 
     adj.changeColor = function() {
@@ -424,34 +442,7 @@ define(function(require){
         resizeDrawing();
     };
 
-    adj.updateTrafficDir = function(val){
-        var dir = 0; // shows "up" values by default
 
-        if(val === "up"){
-            dir = 0;
-        } else if(val === "down"){
-            dir = 1;
-        } else if(val === "bi"){
-            switchLinkData = dataset.filter(function (d) {
-                return (d.sy > 0);
-            });
-            nodeLinkData = dataset.filter(function (d) {
-                return (d.sy === 0);
-            });
-
-            updateLinks();
-            return;
-        }
-
-        switchLinkData = dataset.filter(function (d) {
-            return ((d.dir === dir) && (d.sy > 0));
-        });
-        nodeLinkData = dataset.filter(function (d) {
-            return ((d.dir === dir) && (d.sy === 0));
-        });
-
-        updateLinks();
-    };
 
     adj.toggleNodes = function(state){
         if (state === "hide"){

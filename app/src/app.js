@@ -21,7 +21,7 @@ define(function(require) {
             Controls.addShowAction(View.changeColor);   // TODO: remove "show" button
             Controls.addLinkSizeAction(View.updateLinkSize);
             Controls.addClusterSpaceAction(View.updateClusterSpace);
-            Controls.addTrafficDirAction(View.updateTrafficDir);
+            Controls.addTrafficDirAction(Model.applyDataFilters);
             Controls.addNodeToggleAction(View.toggleNodes);
 
             Model.addConsumer(View);

@@ -73,7 +73,7 @@ define(function(require) {
 
     control.addTrafficDirAction = function(action){
             trafficRadios.on("click", function(){
-                action(this.value);
+                action([['trafdir', this.value]]);
                 //console.log(this.value)
             });
     };
