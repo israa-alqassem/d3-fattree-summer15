@@ -69,10 +69,10 @@ define(function(require){
         var _group = [];
         var group = [];
         var hidden = true;
-        var nodedata = [];
+        var nodedata;
         var nodechart;
 
-        var createGroups;
+        var createGroups, draw;
         var translateNodeCoord;
         var transformData;
 
@@ -88,10 +88,11 @@ define(function(require){
             var i;
             var count = 0;
 
+            nodedata = [];
             for(i = 0; i <= maxX; i++){
                 nodedata[i] = [];
             }
-            console.log(maxX);
+
             nodeLinkData.forEach(function (d) {
                 nodedata[d.tx].push(d.data);
                 count = count + 1;
@@ -110,21 +111,25 @@ define(function(require){
             groupCount = Math.floor(maxX/ (groupSizeY[0]-1));
 
             for (i = 0; i < groupCount; i++){
-                gids.push(i);
                 _group.push(size);
             }
 
             group = _group;
-            transformData();
+        };
 
-            d3.selectAll('nodegroup').remove();
-
-            nodegroups = d3.select("#nodes").selectAll("nodegroup")
-                .data(gids);
+        draw = function(){
 
             if (hidden){
                 NodesAggregate.hide();
             }
+
+            nodegroups.attr("y", displayPadding+0)
+                .attr("x", function(d){
+                    //console.log("style" +d);
+                    return (NodesAggregate.getGroupWidth(d) * d) + clusterWidth*d + clusterMargin*d})
+                .attr("width", function(d){ return NodesAggregate.getGroupWidth(d)})
+                .attr("height", function(d){return NodesAggregate.getGroupWidth(d)})
+                .style("fill", "lightblue");
         };
 
         return{
@@ -133,16 +138,25 @@ define(function(require){
                     .attr('id', 'nodes');
             },
 
-            setup: function(){
-                createGroups();
-            },
-
             update: function(){
-                this.show();
+                createGroups();
+                transformData();
+
+                //console.log("Group length: " + _group.length);
+                var i;
+                for(i = 0; i < _group.length; i++){
+                    d3.select("#nodes").append("rect")
+                        .attr('class', 'nodegroup')
+                        .datum(i);
+                }
+
+                //d3.selectAll('nodegroup').remove();
+                nodegroups = d3.selectAll(".nodegroup");
+                draw();
             },
 
             hide: function(){
-                if (nodeLinkData === null) return;
+                //if (nodeLinkData === null) return;
                 var i;
 
                 group = [];
@@ -152,17 +166,25 @@ define(function(require){
 
                 console.log("hidin");
 
-                transformData();
-
-                d3.selectAll(".nodechart").transition()
-                    .style("background-color", "rgba(173, 216, 230, 0)");
-
+                //nodegroups.transition()
+                // .style("opacity", "0");
 
                 hidden = true;
             },
 
             expand: function(){
-                if (nodeLinkData === null) return;
+                //if (nodeLinkData === null) return;
+                var i;
+
+                group = [];
+                for (i = 0; i < _group.length; i++){
+                    group.push(0);
+                }
+
+                console.log("expanding");
+
+                //nodegroups.transition()
+                //    .style("opacity", "1");
 
                 group = _group;
                 hidden = false;
@@ -174,27 +196,18 @@ define(function(require){
                 // Do something special
             },
 
-            show: function(){
-                if (nodeLinkData === null || hidden ) return;
-
-                nodegroups.exit().remove();
-                nodegroups.enter().append('rect')
-                    .attr('class', 'nodegroup')
+            resize : function(){
+                nodegroups.transition()
                     .attr("y", displayPadding+0)
-                    .attr("x", function(d){
-                        console.log("style" +d); return (NodesAggregate.getGroupWidth(d) * d) + clusterWidth*d + clusterMargin*d})
-                    .attr("width", function(d){ console.log("width" +d); return NodesAggregate.getGroupWidth(d)})
-                    .attr("height", function(d){console.log("height" +d); return NodesAggregate.getGroupWidth(d)})
-                    .style("fill", "lightblue")
-                    .style("stroke", "black");
+                    .attr("x", function(d){ return (NodesAggregate.getGroupWidth(d) * d) + clusterWidth*d + clusterMargin*d})
+                    .attr("width", function(d){ return NodesAggregate.getGroupWidth(d)})
+                    .attr("height", function(d){ return NodesAggregate.getGroupWidth(d)});
+                    //.style("fill", "lightblue");
+            },
 
-
-                //d3.selectAll(".nodechart")
-                //    .style("top",  displayPadding+0+"px")
-                //    .style("left", function(d){return translateNodeCoord(d) + "px"})
-                //    .style("background-color", "rgba(173, 216, 230, 1)");
-
-
+            recolor : function(){
+                nodegroups.transition()
+                    .style("fill", "lightgreen");
             },
 
             getGroupSize: function(num){
@@ -208,6 +221,7 @@ define(function(require){
             getGroupCount: function(){
                 return group.length;
             }
+
         }
     })();
 
@@ -329,7 +343,7 @@ define(function(require){
     calcNetDimensions = function(){
         maxX = d3.max(switchLinkData, function(d){return d.sx});
 
-        NodesAggregate.update();
+        //NodesAggregate.update();
         console.log("Max X is: " + maxX);
     };
 
@@ -377,7 +391,7 @@ define(function(require){
             .attr("height", linkWidth);
         //.style("fill", function(d) { return cmap(d.data); });
 
-        NodesAggregate.show();
+        NodesAggregate.resize();
     };
 
     recolorDrawing = function(){
@@ -394,21 +408,19 @@ define(function(require){
         links.transition().duration(1000)
             .style("fill", function(d) { return cmap(d.data); });
 
-        NodesAggregate.show();
+        NodesAggregate.recolor();
     };
 
     setupNodes = function(){
-        NodesAggregate.setup();
+        //NodesAggregate.setup();
     };
 
     updateLinks = function(){
         // Find max value and map values over colour range
 
-
         links = d3.select("#links")
             .selectAll(".link")
             .data(switchLinkData, function(d){return d.id;});
-
 
         showLinks();
     };
@@ -421,10 +433,11 @@ define(function(require){
         //cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range(["white", "red", "black"]);
 
         calcNetDimensions();
-        calcVizDimensions();
+        NodesAggregate.update();
 
+        calcVizDimensions();
         updateLinks();
-        setupNodes();
+        //setupNodes();
     };
 
     var adj = {};
