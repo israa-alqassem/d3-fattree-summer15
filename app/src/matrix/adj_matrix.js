@@ -21,8 +21,8 @@ define(function(require){
 
     // Layout specification variables
     var linkMargin = 0;
-    var linkWidth = 8;                                         // width of link in pixels
-    var nodeWidth = 8;
+    var linkWidth =  8;                                         // width of link in pixels
+    var nodeWidth = linkWidth;
     //var linkRadius = linkWidth/3;                               // for square with rounded corners
 
     var groupSizeX = 18;                                         // number of links to display horizontally/vertically per group
@@ -66,6 +66,8 @@ define(function(require){
         .style("opacity", 0);
 
     var NodesAggregate = (function(){
+        var groupgap = 10;      // gap between node group and it's respective switch cluster
+
         var _group = [];
         var group = [];
         var hidden = true;
@@ -73,15 +75,19 @@ define(function(require){
         var nodechart;
 
         var createGroups, draw;
-        var translateNodeCoord;
+        var translateGroupCoord, translateNodeCoord;
         var transformData;
 
         var nodes;
         var nodebars;
         var nodegroups;
 
+        translateGroupCoord = function(x){
+            return x * (NodesAggregate.getGroupSize(x) + clusterWidth + clusterMargin + groupgap) + displayPadding;
+        };
+
         translateNodeCoord = function(x){
-            return (NodesAggregate.getGroupWidth(x) * x) + clusterWidth*x + clusterMargin*x;
+            return x * (NodesAggregate.getGroupSize(x) + clusterWidth + clusterMargin);
         };
 
         transformData = function(){
@@ -126,9 +132,9 @@ define(function(require){
             nodegroups.attr("y", displayPadding+0)
                 .attr("x", function(d){
                     //console.log("style" +d);
-                    return (NodesAggregate.getGroupWidth(d) * d) + clusterWidth*d + clusterMargin*d})
-                .attr("width", function(d){ return NodesAggregate.getGroupWidth(d)})
-                .attr("height", function(d){return NodesAggregate.getGroupWidth(d)})
+                    return translateGroupCoord(d)})
+                .attr("width", function(d){ return NodesAggregate.getGroupSize(d)})
+                .attr("height", function(d){return NodesAggregate.getGroupSize(d)})
                 .style("fill", "lightblue");
         };
 
@@ -199,9 +205,9 @@ define(function(require){
             resize : function(){
                 nodegroups.transition()
                     .attr("y", displayPadding+0)
-                    .attr("x", function(d){ return (NodesAggregate.getGroupWidth(d) * d) + clusterWidth*d + clusterMargin*d})
-                    .attr("width", function(d){ return NodesAggregate.getGroupWidth(d)})
-                    .attr("height", function(d){ return NodesAggregate.getGroupWidth(d)});
+                    .attr("x", function(d){ return translateGroupCoord(d)})
+                    .attr("width", function(d){ return NodesAggregate.getGroupSize(d)})
+                    .attr("height", function(d){ return NodesAggregate.getGroupSize(d)});
                     //.style("fill", "lightblue");
             },
 
@@ -211,11 +217,12 @@ define(function(require){
             },
 
             getGroupSize: function(num){
-                return group[num];
+                return group[num] * (linkWidth+linkMargin);
             },
 
             getGroupWidth: function(num){
-                return group[num] * nodeWidth;
+                if (hidden) return 0;
+                return NodesAggregate.getGroupSize(num) + groupgap;
             },
 
             getGroupCount: function(){
