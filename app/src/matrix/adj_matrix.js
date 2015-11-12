@@ -82,20 +82,68 @@ define(function(require){
         var nodebars;
         var nodegroups;
 
-        translateGroupCoord = function(x){
-            return x * (NodesAggregate.getGroupSize(x) + clusterWidth + clusterMargin + groupgap) + displayPadding;
+        translateGroupCoord = function(val){
+            var i, x = 0;
+            var clusterSpan = clusterMargin + clusterWidth;
+            var groupSpan =
+
+            // add spacking for display padding
+            x = x + displayPadding;
+
+            // add spacing for switch clusters (start after the first cluster)
+            x = x + clusterWidth + groupgap + (val * clusterSpan);
+
+            // add spacing for previous groups
+            for(i = 0; i < val; i++){
+                x = x + NodesAggregate.getGroupWidth(i);
+            }
+
+            return x;
+            //return val * (NodesAggregate.getGroupSize(va) + clusterWidth + clusterMargin + groupgap) + displayPadding;
         };
 
         translateNodeCoord = function(x){
-            return x * (NodesAggregate.getGroupSize(x) + clusterWidth + clusterMargin);
+
+            // find position of containing nodegroup, position within nodegroup
+            var gnum = Math.floor(x/(groupSizeX*groupSizeX));
+            var gval = x % (groupSizeX*groupSizeX);
+            var gx   = Math.floor(gval/groupSizeX);
+            var gy   = gval % groupSizeX;
+
+            // get position of container group
+            var newX = translateGroupCoord(gnum);
+            var newY = displayPadding;                           // groups are horizontal only
+
+            // add node  margins/padding
+            newX = newX + gx * linkWidth_t;
+            newY = newY + gy * linkWidth_t;
+
+            // add cluster margins/padding
+            //newX =  newX + (xCluster * clusterMargin);
+
+            // add spacing for node-aggregate
+            //for(i = 0; i <= xCluster; i++){
+            //    newX = newX + (NodesAggregate.getGroupWidth(i));
+            //}
+            //maxLevel = Math.max(newY, maxLevel);
+            // flip image along the horizontal
+            //newY = vizHeight  - newY;
+
+            // add display padding
+            //newX = newX + displayPadding;
+            //newY = newY + displayPadding;
+            return [newX, newY];
         };
 
         transformData = function(){
             var i;
+            var parentcount;
             var count = 0;
 
+            parentcount = d3.max(nodeLinkData, function(d){return d.tx});
+
             nodedata = [];
-            for(i = 0; i <= maxX; i++){
+            for(i = 0; i <= parentcount; i++){
                 nodedata[i] = [];
             }
 
@@ -103,7 +151,7 @@ define(function(require){
                 nodedata[d.tx].push(d.data);
                 count = count + 1;
             });
-            console.log("Nodes processed: " + count);
+            console.log("Nodes processed: " + nodedata.length);
         };
 
         createGroups = function(){
@@ -114,28 +162,16 @@ define(function(require){
             var i, gids = [];
 
             _group = [];
-            groupCount = Math.floor(maxX/ (groupSizeY[0]-1));
+            groupCount = Math.floor(nodedata.length/ (groupSizeY[0]-1));
 
             for (i = 0; i < groupCount; i++){
                 _group.push(size);
+                gids.push(i);
             }
 
             group = _group;
-        };
 
-        draw = function(){
-
-            if (hidden){
-                NodesAggregate.hide();
-            }
-
-            nodegroups.attr("y", displayPadding+0)
-                .attr("x", function(d){
-                    //console.log("style" +d);
-                    return translateGroupCoord(d)})
-                .attr("width", function(d){ return NodesAggregate.getGroupSize(d)})
-                .attr("height", function(d){return NodesAggregate.getGroupSize(d)})
-                .style("fill", "lightblue");
+            return gids;
         };
 
         return{
@@ -145,20 +181,47 @@ define(function(require){
             },
 
             update: function(){
-                createGroups();
                 transformData();
 
-                //console.log("Group length: " + _group.length);
-                var i;
-                for(i = 0; i < _group.length; i++){
-                    d3.select("#nodes").append("rect")
-                        .attr('class', 'nodegroup')
-                        .datum(i);
+                nodegroups = d3.select("#nodes").selectAll(".nodegroup")
+                    .data(createGroups());
+
+                nodebars = d3.select("#nodes").selectAll(".nodebar")
+                    .data(nodedata);
+            },
+
+            draw : function(){
+                if (hidden){
+                    NodesAggregate.hide();
                 }
 
-                //d3.selectAll('nodegroup').remove();
-                nodegroups = d3.selectAll(".nodegroup");
-                draw();
+                nodegroups.exit().remove();
+                nodegroups.enter()
+                    .append("rect")
+                    .attr("class", "nodegroup")
+                    .attr("y", displayPadding+0)
+                    .attr("x", function(d){
+                        //console.log("style" +d);
+                        return translateGroupCoord(d)})
+                    .attr("width", function(d){ return NodesAggregate.getGroupSize(d)})
+                    .attr("height", function(d){return NodesAggregate.getGroupSize(d)})
+                    .style("fill", "lightblue");
+
+                nodebars.exit().remove();
+                nodebars.enter()
+                    .append("rect")
+                    .attr("class", "nodebar")
+                    .attr("y", function(d,i){
+                        return translateNodeCoord(i*18)[1]
+                    })
+                    .attr("x", function(d,i){
+                        //console.log("style" +d);
+                        return translateNodeCoord(i*18)[0]
+                    })
+                    .attr("width", function(d){ return linkWidth})
+                    .attr("height", function(d){return linkWidth})
+                    .style("fill", "red")
+                    .style("stroke", "black");
             },
 
             hide: function(){
@@ -209,6 +272,12 @@ define(function(require){
                     .attr("width", function(d){ return NodesAggregate.getGroupSize(d)})
                     .attr("height", function(d){ return NodesAggregate.getGroupSize(d)});
                     //.style("fill", "lightblue");
+
+                nodebars.transition()
+                    .attr("y", function(d, i){ return translateNodeCoord(i*18)[1]})
+                    .attr("x", function(d, i){ return translateNodeCoord(i*18)[0]})
+                    .attr("width", function(d){ return linkWidth})
+                    .attr("height", function(d){ return linkWidth});
             },
 
             recolor : function(){
@@ -271,7 +340,7 @@ define(function(require){
         newY =  newY + (yCluster * clusterMargin);
 
         // add spacing for node-aggregate
-        for(i = 0; i <= xCluster; i++){
+        for(i = 0; i < xCluster; i++){
             newX = newX + (NodesAggregate.getGroupWidth(i));
         }
         maxLevel = Math.max(newY, maxLevel);
@@ -428,8 +497,6 @@ define(function(require){
         links = d3.select("#links")
             .selectAll(".link")
             .data(switchLinkData, function(d){return d.id;});
-
-        showLinks();
     };
 
     updateDrawing = function(){
@@ -439,12 +506,15 @@ define(function(require){
         cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range([colorSet1[colorId], colorSet2[colorId], colorSet3[colorId]]);
         //cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range(["white", "red", "black"]);
 
-        calcNetDimensions();
+
+        updateLinks();
         NodesAggregate.update();
 
+        calcNetDimensions();
         calcVizDimensions();
-        updateLinks();
-        //setupNodes();
+
+        NodesAggregate.draw();
+        showLinks();
     };
 
     var adj = {};
