@@ -74,7 +74,7 @@ define(function(require){
         var nodedata;
         var nodechart;
 
-        var createGroups, draw;
+        var createGroups, calcNodeBarSpan;
         var translateGroupCoord, translateNodeCoord;
         var transformData;
 
@@ -107,8 +107,10 @@ define(function(require){
             // find position of containing nodegroup, position within nodegroup
             var gnum = Math.floor(x/(groupSizeX*groupSizeX));
             var gval = x % (groupSizeX*groupSizeX);
-            var gx   = Math.floor(gval/groupSizeX);
-            var gy   = gval % groupSizeX;
+            //var gx   = Math.floor(gval/groupSizeX);
+            //var gy   = gval % groupSizeX;
+            var gx   = gval % groupSizeX;
+            var gy   = Math.floor(gval/groupSizeX);
 
             // get position of container group
             var newX = translateGroupCoord(gnum);
@@ -118,20 +120,6 @@ define(function(require){
             newX = newX + gx * linkWidth_t;
             newY = newY + gy * linkWidth_t;
 
-            // add cluster margins/padding
-            //newX =  newX + (xCluster * clusterMargin);
-
-            // add spacing for node-aggregate
-            //for(i = 0; i <= xCluster; i++){
-            //    newX = newX + (NodesAggregate.getGroupWidth(i));
-            //}
-            //maxLevel = Math.max(newY, maxLevel);
-            // flip image along the horizontal
-            //newY = vizHeight  - newY;
-
-            // add display padding
-            //newX = newX + displayPadding;
-            //newY = newY + displayPadding;
             return [newX, newY];
         };
 
@@ -174,6 +162,20 @@ define(function(require){
             return gids;
         };
 
+        calcNodeBarSpan = function(vals){
+            var span = 0;
+
+            // count # of non-zero elements
+            vals.forEach(function(d){
+                if (d != 0) span = span+1;
+            });
+
+            //set size based on the # of non-zero elements
+            span = span * linkWidth;
+
+            return span;
+        };
+
         return{
             init: function(){
                 adjMatrix.append('g')
@@ -188,6 +190,7 @@ define(function(require){
 
                 nodebars = d3.select("#nodes").selectAll(".nodebar")
                     .data(nodedata);
+                    //.data(nodeLinkData, function(d){return d.id;});
             },
 
             draw : function(){
@@ -205,7 +208,9 @@ define(function(require){
                         return translateGroupCoord(d)})
                     .attr("width", function(d){ return NodesAggregate.getGroupSize(d)})
                     .attr("height", function(d){return NodesAggregate.getGroupSize(d)})
-                    .style("fill", "lightblue");
+                    .style("fill", "lightgrey")
+                    .style("stroke", "black")
+                    .style("opacity", 0);
 
                 nodebars.exit().remove();
                 nodebars.enter()
@@ -220,8 +225,9 @@ define(function(require){
                     })
                     .attr("width", function(d){ return linkWidth})
                     .attr("height", function(d){return linkWidth})
-                    .style("fill", "red")
-                    .style("stroke", "black");
+                    .style("fill", "grey")
+                    .style("stroke", "darkgrey")
+                    .style("opacity", 0);
             },
 
             hide: function(){
@@ -235,8 +241,9 @@ define(function(require){
 
                 console.log("hidin");
 
-                //nodegroups.transition()
-                // .style("opacity", "0");
+                nodegroups.style("opacity", 0);
+
+                nodebars.style("opacity", 0);
 
                 hidden = true;
             },
@@ -252,8 +259,9 @@ define(function(require){
 
                 console.log("expanding");
 
-                //nodegroups.transition()
-                //    .style("opacity", "1");
+                nodegroups.style("opacity", 1);
+
+                nodebars.style("opacity", 1);
 
                 group = _group;
                 hidden = false;
@@ -276,7 +284,7 @@ define(function(require){
                 nodebars.transition()
                     .attr("y", function(d, i){ return translateNodeCoord(i*18)[1]})
                     .attr("x", function(d, i){ return translateNodeCoord(i*18)[0]})
-                    .attr("width", function(d){ return linkWidth})
+                    .attr("width", function(d){ return calcNodeBarSpan(d)})
                     .attr("height", function(d){ return linkWidth});
             },
 
