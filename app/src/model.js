@@ -65,8 +65,6 @@ define(function(require){
                     console.log("Unrecognised filter: " + filter[i][0]);
             }
         }
-
-        console.log('Trigger update: applyDataFilters');
     };
 
     model.loadData = function (filename) {

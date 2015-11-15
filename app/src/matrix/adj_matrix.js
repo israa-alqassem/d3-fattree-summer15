@@ -65,6 +65,10 @@ define(function(require){
         .attr("class", "infotip")
         .style("opacity", 0);
 
+    var invertYCoord = function(val){
+        return vizHeight - val;
+    };
+
     var NodesAggregate = (function(){
         var groupgap = 10;      // gap between node group and it's respective switch cluster
 
@@ -83,12 +87,11 @@ define(function(require){
         var nodegroups;
 
         translateGroupCoord = function(val){
-            var i, x = 0;
+            var i;
             var clusterSpan = clusterMargin + clusterWidth;
-            var groupSpan =
 
-            // add spacking for display padding
-            x = x + displayPadding;
+            var x = 0;
+            var y = 0;
 
             // add spacing for switch clusters (start after the first cluster)
             x = x + clusterWidth + groupgap + (val * clusterSpan);
@@ -98,7 +101,14 @@ define(function(require){
                 x = x + NodesAggregate.getGroupWidth(i);
             }
 
-            return x;
+            // flip node vertically
+            y = invertYCoord(y) - NodesAggregate.getGroupSize(val);
+
+            // add spacing for display padding
+            x = x + displayPadding;
+            y = y + displayPadding;
+
+            return [x, y];
             //return val * (NodesAggregate.getGroupSize(va) + clusterWidth + clusterMargin + groupgap) + displayPadding;
         };
 
@@ -113,12 +123,19 @@ define(function(require){
             var gy   = Math.floor(gval/groupSizeX);
 
             // get position of container group
-            var newX = translateGroupCoord(gnum);
-            var newY = displayPadding;                           // groups are horizontal only
+            var newX = translateGroupCoord(gnum)[0];
+            var newY = 0;                           // groups are horizontal only
 
             // add node  margins/padding
             newX = newX + gx * linkWidth_t;
             newY = newY + gy * linkWidth_t;
+
+            // flip node virtically
+            newY = invertYCoord(newY);
+            newY = newY - linkWidth_t;
+
+            // add display padding for Y. Padding is already added for X via group location
+            newY = newY + displayPadding;
 
             return [newX, newY];
         };
@@ -202,10 +219,8 @@ define(function(require){
                 nodegroups.enter()
                     .append("rect")
                     .attr("class", "nodegroup")
-                    .attr("y", displayPadding+0)
-                    .attr("x", function(d){
-                        //console.log("style" +d);
-                        return translateGroupCoord(d)})
+                    .attr("y", function(d){ return translateGroupCoord(d)[1]})
+                    .attr("x", function(d){ return translateGroupCoord(d)[0]})
                     .attr("width", function(d){ return NodesAggregate.getGroupSize(d)})
                     .attr("height", function(d){return NodesAggregate.getGroupSize(d)})
                     .style("fill", "lightgrey")
@@ -275,8 +290,8 @@ define(function(require){
 
             resize : function(){
                 nodegroups.transition()
-                    .attr("y", displayPadding+0)
-                    .attr("x", function(d){ return translateGroupCoord(d)})
+                    .attr("y", function(d){ return translateGroupCoord(d)[1]})
+                    .attr("x", function(d){ return translateGroupCoord(d)[0]})
                     .attr("width", function(d){ return NodesAggregate.getGroupSize(d)})
                     .attr("height", function(d){ return NodesAggregate.getGroupSize(d)});
                     //.style("fill", "lightblue");
@@ -352,8 +367,10 @@ define(function(require){
             newX = newX + (NodesAggregate.getGroupWidth(i));
         }
         maxLevel = Math.max(newY, maxLevel);
+
         // flip image along the horizontal
-        //newY = vizHeight  - newY;
+        newY = invertYCoord(newY);
+        newY = newY - linkWidth_t;
 
         // add display padding
         newX = newX + displayPadding;
@@ -446,7 +463,7 @@ define(function(require){
             }
         }
         // TODO: the below line corrects a "bug" in the translateCoords function
-        vizHeight = vizHeight - linkWidth_t;
+        //vizHeight = vizHeight - linkWidth_t;
 
         vizWidth = 0;
         for (i = 0; i < NodesAggregate.getGroupCount(); i++){
