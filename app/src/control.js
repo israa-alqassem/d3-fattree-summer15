@@ -12,8 +12,8 @@ define(function(require) {
     var filesList;
     var linkSizeSlider;
     var linkSizeDisplay;
-    var clusterSpaceSlider;
-    var clusterSpaceDisplay;
+    var switchSizeSlider;
+    var switchSizeDisplay;
 
     // Private functions
     var populateFileNames;
@@ -35,15 +35,15 @@ define(function(require) {
             filesList = d3.select("#run");
             linkSizeSlider = d3.select("#range-link-size");
             linkSizeDisplay = d3.select("#link-size-display");
-            clusterSpaceSlider = d3.select("#range-cluster-space");
-            clusterSpaceDisplay = d3.select("#cluster-space-display");
+            switchSizeSlider = d3.select("#range-switch-size");
+            switchSizeDisplay = d3.select("#switch-size-display");
             trafficRadios = d3.selectAll('input[name="traffic-direction"]');
             nodeRadios = d3.selectAll('input[name="toggle-nodes"]');
 
             populateFileNames();
 
             linkSizeDisplay.text(linkSizeSlider.node().value);
-            clusterSpaceDisplay.text(clusterSpaceSlider.node().value);
+            switchSizeDisplay.text(switchSizeSlider.node().value);
     };
 
     control.addLoadAction = function(action) {
@@ -64,10 +64,10 @@ define(function(require) {
             });
     };
 
-    control.addClusterSpaceAction = function(action){
-            clusterSpaceSlider.on("input", function(){
+    control.addSwitchSizeAction = function(action){
+            switchSizeSlider.on("input", function(){
                 action(this.value);
-                clusterSpaceDisplay.text(this.value);
+                switchSizeDisplay.text(this.value);
             });
     };
 

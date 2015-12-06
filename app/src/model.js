@@ -9,14 +9,14 @@ define(function(require){
 
     var consumer;
     var model = {};
-    var _dataset, nodedata, switchdata = [];
+    var _dataset, nodedata, switchlinkdata = [];
 
     var setup;
     var filterTrafficDir;
     var updateLinks, updateNodes;
 
     setup = function(){
-        nodedata = switchdata = [];
+        nodedata = switchlinkdata = [];
         model.applyDataFilters([['trafdir', 'up']]);
     };
 
@@ -32,14 +32,14 @@ define(function(require){
         }
 
         if(val === 'bi'){
-            switchdata = _dataset.filter(function (d) {
+            switchlinkdata = _dataset.filter(function (d) {
                 return (d.sy > 0);
             });
             nodedata = _dataset.filter(function (d) {
                 return (d.sy === 0);
             });
         } else {
-            switchdata = _dataset.filter(function (d) {
+            switchlinkdata = _dataset.filter(function (d) {
                 return ((d.dir === dir) && (d.sy > 0));
             });
             nodedata = _dataset.filter(function (d) {
@@ -47,7 +47,28 @@ define(function(require){
             });
         }
 
-        consumer.consume({switch: switchdata, node: nodedata});
+        var switchdata, switchdatatmp;
+        var key;
+
+        switchdatatmp = d3.nest()
+            .key( function(d){return [d.tx, d.ty]})
+            .rollup(function(v){
+                return d3.mean(v, function(d){return d.data}) })
+            .map(_dataset);
+
+        switchdata = [];
+
+        //console.log(switchdatatmp);
+        var tx, ty;
+        for (key in switchdatatmp){
+            if (switchdatatmp.hasOwnProperty(key)) {
+                tx = +key.split(",")[0];
+                ty = +key.split(",")[1];
+                switchdata.push({tx: tx, ty: ty, data: +switchdatatmp[key]});
+            }
+        }
+        //console.log(switchdata);
+        consumer.consume({switchlink: switchlinkdata, nodelink: nodedata, switch: switchdata});
     };
 
     model.applyDataFilters = function(filter){

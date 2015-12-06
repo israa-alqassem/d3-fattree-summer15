@@ -3,8 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="d652e6dd-c7de-44c2-9619-42fd5934ef9c" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/matrix/adj_matrix.js" afterPath="$PROJECT_DIR$/app/src/matrix/adj_matrix.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/app.js" afterPath="$PROJECT_DIR$/app/src/app.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/control.js" afterPath="$PROJECT_DIR$/app/src/control.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/index.html" afterPath="$PROJECT_DIR$/app/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/model.js" afterPath="$PROJECT_DIR$/app/src/model.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="d3_fattree.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -29,7 +32,7 @@
         <entry file="file://$PROJECT_DIR$/app/src/control.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="75" column="25" selection-start-line="75" selection-start-column="25" selection-end-line="75" selection-end-column="25" />
+              <caret line="37" column="52" selection-start-line="37" selection-start-column="52" selection-end-line="37" selection-end-column="52" />
               <folding>
                 <element signature="e#0#40#0" expanded="false" />
               </folding>
@@ -47,13 +50,15 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="adj_matrix.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="adj_matrix.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/matrix/adj_matrix.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="414" column="50" selection-start-line="414" selection-start-column="50" selection-end-line="414" selection-end-column="50" />
+            <state vertical-scroll-proportion="0.5897436">
+              <caret line="224" column="43" selection-start-line="224" selection-start-column="43" selection-end-line="224" selection-end-column="43" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
+                <element signature="e#8485#17020#0" expanded="false" />
+                <element signature="e#17060#22603#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -63,7 +68,7 @@
         <entry file="file://$PROJECT_DIR$/app/src/snippets.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="178" column="0" selection-start-line="178" selection-start-column="0" selection-end-line="186" selection-end-column="33" />
+              <caret line="81" column="20" selection-start-line="81" selection-start-column="19" selection-end-line="81" selection-end-column="20" />
               <folding />
             </state>
           </provider>
@@ -73,7 +78,7 @@
         <entry file="file://$PROJECT_DIR$/app/src/model.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="67" column="6" selection-start-line="67" selection-start-column="6" selection-end-line="67" selection-end-column="6" />
+              <caret line="69" column="10" selection-start-line="69" selection-start-column="10" selection-end-line="69" selection-end-column="10" />
               <folding>
                 <element signature="e#0#40#0" expanded="false" />
               </folding>
@@ -91,11 +96,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
+      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.61734694">
-              <caret line="86" column="17" selection-start-line="86" selection-start-column="17" selection-end-line="86" selection-end-column="17" />
+            <state vertical-scroll-proportion="-17.625">
+              <caret line="57" column="90" selection-start-line="57" selection-start-column="90" selection-end-line="57" selection-end-column="90" />
               <folding />
             </state>
           </provider>
@@ -117,7 +122,7 @@
         <entry file="file://$PROJECT_DIR$/app/src/app.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="15" column="32" selection-start-line="15" selection-start-column="32" selection-end-line="15" selection-end-column="32" />
+              <caret line="22" column="63" selection-start-line="22" selection-start-column="63" selection-end-line="22" selection-end-column="63" />
               <folding>
                 <element signature="e#0#40#0" expanded="false" />
               </folding>
@@ -164,12 +169,12 @@
         <option value="$PROJECT_DIR$/app/src/main.js" />
         <option value="$PROJECT_DIR$/app/src/view.js" />
         <option value="$PROJECT_DIR$/app/css/screen.css" />
-        <option value="$PROJECT_DIR$/app/src/app.js" />
-        <option value="$PROJECT_DIR$/app/src/control.js" />
         <option value="$PROJECT_DIR$/app/src/snippets.js" />
-        <option value="$PROJECT_DIR$/app/src/matrix/adj_matrix.js" />
         <option value="$PROJECT_DIR$/app/src/model.js" />
+        <option value="$PROJECT_DIR$/app/src/control.js" />
         <option value="$PROJECT_DIR$/app/index.html" />
+        <option value="$PROJECT_DIR$/app/src/app.js" />
+        <option value="$PROJECT_DIR$/app/src/matrix/adj_matrix.js" />
       </list>
     </option>
   </component>
@@ -208,7 +213,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
@@ -302,6 +306,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -738,14 +743,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/css/screen.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="69" column="4" selection-start-line="69" selection-start-column="4" selection-end-line="69" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/init.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -756,41 +753,19 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/app.js">
+    <entry file="file://$PROJECT_DIR$/app/css/screen.css">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="15" column="32" selection-start-line="15" selection-start-column="32" selection-end-line="15" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#40#0" expanded="false" />
-          </folding>
+          <caret line="69" column="4" selection-start-line="69" selection-start-column="4" selection-end-line="69" selection-end-column="4" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/snippets.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="178" column="0" selection-start-line="178" selection-start-column="0" selection-end-line="186" selection-end-column="33" />
+          <caret line="81" column="20" selection-start-line="81" selection-start-column="19" selection-end-line="81" selection-end-column="20" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/control.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="75" column="25" selection-start-line="75" selection-start-column="25" selection-end-line="75" selection-end-column="25" />
-          <folding>
-            <element signature="e#0#40#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/model.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="67" column="6" selection-start-line="67" selection-start-column="6" selection-end-line="67" selection-end-column="6" />
-          <folding>
-            <element signature="e#0#40#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -802,21 +777,53 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/matrix/adj_matrix.js">
+    <entry file="file://$PROJECT_DIR$/app/src/model.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="414" column="50" selection-start-line="414" selection-start-column="50" selection-end-line="414" selection-end-column="50" />
+          <caret line="69" column="10" selection-start-line="69" selection-start-column="10" selection-end-line="69" selection-end-column="10" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <element signature="e#0#40#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.61734694">
-          <caret line="86" column="17" selection-start-line="86" selection-start-column="17" selection-end-line="86" selection-end-column="17" />
+        <state vertical-scroll-proportion="-17.625">
+          <caret line="57" column="90" selection-start-line="57" selection-start-column="90" selection-end-line="57" selection-end-column="90" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/control.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="37" column="52" selection-start-line="37" selection-start-column="52" selection-end-line="37" selection-end-column="52" />
+          <folding>
+            <element signature="e#0#40#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="22" column="63" selection-start-line="22" selection-start-column="63" selection-end-line="22" selection-end-column="63" />
+          <folding>
+            <element signature="e#0#40#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/matrix/adj_matrix.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5897436">
+          <caret line="224" column="43" selection-start-line="224" selection-start-column="43" selection-end-line="224" selection-end-column="43" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+            <element signature="e#8485#17020#0" expanded="false" />
+            <element signature="e#17060#22603#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
