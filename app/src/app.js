@@ -18,7 +18,7 @@ define(function(require) {
         app.start = function() {
             Controls.init();
             Controls.addLoadAction(Model.loadData);
-            Controls.addShowAction(View.changeColor);   // TODO: remove "show" button
+            Controls.addColorAction(View.changeColor);   // TODO: remove "show" button
             Controls.addLinkSizeAction(View.updateLinkSize);
             Controls.addSwitchSizeAction(View.updateSwitchSize);
             Controls.addTrafficDirAction(Model.applyDataFilters);

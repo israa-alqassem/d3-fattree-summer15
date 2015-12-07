@@ -64,7 +64,7 @@ define(function(require){
             if (switchdatatmp.hasOwnProperty(key)) {
                 tx = +key.split(",")[0];
                 ty = +key.split(",")[1];
-                switchdata.push({tx: tx, ty: ty, data: +switchdatatmp[key]});
+                switchdata.push({x: tx, y: ty, data: +switchdatatmp[key]});
             }
         }
         //console.log(switchdata);

@@ -187,3 +187,29 @@ translateCoords = function (sx, sy, tx, ty){
     .style("stroke", "lightblue")
     .datum(i);
 
+/*
+ // switch elements are grouped so that can be hidden more easily
+ createGroups = function(){
+ var size = switchwidth;
+ var groupcountx, groupcounty;
+ var i, gids = [];
+
+ _groupx = _groupy = [];
+ groupcountx = Math.floor(maxX/ (groupSizeX-1));
+ groupcounty = Math.floor(maxY / 2);
+
+ for (i = 0; i < groupcountx; i++){
+ _groupx.push(size);
+ //gids.push(i);
+ }
+ for (i = 0; i < groupcounty; i++){
+ _groupy.push(size);
+ //gids.push(i);
+ }
+
+ groupx = _groupx;
+ groupy = _groupy;
+
+ return gids;
+ };
+ */

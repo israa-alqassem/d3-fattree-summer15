@@ -38,11 +38,13 @@ define(function(require){
     //var linkWidth_t = 0;
 
     // D3 object variables
-    var canvas, adjMatrix;;
+    var canvas, adjMatrix;
 
     // Private Methods
     var updateDrawing, updateLinks, updateNodes, setupNodes;
-    var showSquaresLink, showTriangleLinks, showInfoTip, hideInfoTip, resizeDrawing, recolorDrawing;
+    var showSquaresLink, showTriangleLinks;
+    var applySelection, clearSelection, showInfoTip, hideInfoTip;
+    var resizeDrawing, recolorDrawing;
     var translateCoords, calcNetDimensions, calcVizDimensions;
     var drawTriangle;
 
@@ -66,7 +68,7 @@ define(function(require){
 
     var SwitchElements = (function(){
         var switchdata = [];
-        var hidden = true;
+        var hidden = false;
         var switchWidth = 15;
         var switchMargin = 0;
         var groupgap = 5;
@@ -84,42 +86,24 @@ define(function(require){
             switchdata = switchData;
         };
 
-        getWidth = function(y){
-            if (y % 2 === 1){
-                return switchWidth;
-            } else{
-                return LinkElements.getLinkWidth_t();
-            }
-
-        };
-
-        getHeight = function(y){
-            if (y % 2 === 0){
-                return switchWidth;
-            } else{
-                return LinkElements.getLinkWidth_t();
-            }
-
-        };
-
-        translateSwitchCoord = function(tx, ty){
+        translateSwitchCoord = function(xval, yval){
             var type;
             var x, y, i;
             // gx and gy are used to store the switch group's x position and y position, respectively.
             var gx, gy;
             var pos;        // pos stores the location with a switch group
 
-            if (ty % 2 === 1){
+            if (yval % 2 === 1){
                 type = "col";
-                gy = Math.floor(ty / 2);
-                gx = Math.floor(tx / groupSizeY[gy]);
-                pos = tx % groupSizeY[gy];
+                gy = Math.floor(yval / 2);
+                gx = Math.floor(xval / groupSizeY[gy]);
+                pos = xval % groupSizeY[gy];
             }
             else{
                 type = "row";
-                gy = Math.floor(ty / 2) - 1;
-                gx = Math.floor(tx / groupSizeX);
-                pos = tx % groupSizeX;
+                gy = Math.floor(yval / 2) - 1;
+                gx = Math.floor(xval / groupSizeX);
+                pos = xval % groupSizeX;
             }
 
             x = y = 0;
@@ -160,32 +144,24 @@ define(function(require){
             return [x, y];
         };
 
-        /*
-        // switch elements are grouped so that can be hidden more easily
-        createGroups = function(){
-            var size = switchwidth;
-            var groupcountx, groupcounty;
-            var i, gids = [];
-
-            _groupx = _groupy = [];
-            groupcountx = Math.floor(maxX/ (groupSizeX-1));
-            groupcounty = Math.floor(maxY / 2);
-
-            for (i = 0; i < groupcountx; i++){
-                _groupx.push(size);
-                //gids.push(i);
-            }
-            for (i = 0; i < groupcounty; i++){
-                _groupy.push(size);
-                //gids.push(i);
+        getWidth = function(y){
+            if (y % 2 === 1){
+                return switchWidth;
+            } else{
+                return LinkElements.getLinkWidth_t();
             }
 
-            groupx = _groupx;
-            groupy = _groupy;
-
-            return gids;
         };
-        */
+
+        getHeight = function(y){
+            if (y % 2 === 0){
+                return switchWidth;
+            } else{
+                return LinkElements.getLinkWidth_t();
+            }
+
+        };
+
 
         return{
             init: function(){
@@ -213,17 +189,18 @@ define(function(require){
                     .attr("class", "switch")
                     .attr("y", function(d){
                         //console.log("style - " + d.ty);
-                        return translateSwitchCoord(d.tx, d.ty)[1]
+                        return translateSwitchCoord(d.x, d.y)[1]
                     })
                     .attr("x", function(d,i){
                         //console.log("style" + d.tx);
-                        return translateSwitchCoord(d.tx, d.ty)[0]
+                        return translateSwitchCoord(d.x, d.y)[0]
                     })
-                    .attr("width", function(d){ return getWidth(d.ty)})
-                    .attr("height", function(d){return getHeight(d.ty)})
-                    .style("fill", "blue")
+                    .attr("width", function(d){ return getWidth(d.y)})
+                    .attr("height", function(d){return getHeight(d.y)})
+                    .style("fill", "lightblue")
                     .style("stroke", "white")
-                    .style("opacity", 0);
+                    .on("mousedown", function(d){ applySelection("switch", d.x, d.y, null, null); })
+                    .on("mouseup", function(d){ clearSelection("switch"); });
             },
 
             hide: function(){
@@ -244,10 +221,10 @@ define(function(require){
 
             resize : function(){
                 switches.transition()
-                    .attr("y", function(d){ return translateSwitchCoord(d.tx, d.ty)[1]})
-                    .attr("x", function(d){ return translateSwitchCoord(d.tx, d.ty)[0]})
-                    .attr("width", function(d){return getWidth(d.ty)})
-                    .attr("height", function(d){return getHeight(d.ty)});
+                    .attr("y", function(d){ return translateSwitchCoord(d.x, d.y)[1]})
+                    .attr("x", function(d){ return translateSwitchCoord(d.x, d.y)[0]})
+                    .attr("width", function(d){return getWidth(d.y)})
+                    .attr("height", function(d){return getHeight(d.y)});
             },
 
             recolor : function(){
@@ -262,6 +239,10 @@ define(function(require){
 
             setSwitchSize: function(val){
                 switchWidth = val;
+            },
+
+            select: function(val){
+
             }
         }
     })();
@@ -535,6 +516,8 @@ define(function(require){
     })();
 
     var LinkElements = (function(){
+        var hidden = false;
+
         var linkMargin = 0;
         var linkWidth =  8;                                         // width of link in pixels
         var linkWidth_t = linkWidth + linkMargin;
@@ -550,7 +533,6 @@ define(function(require){
         transformData = function(){
             linkdata = switchLinkData;
         };
-
 
         translateCoords = function (sx, sy, tx, ty){
             // Always plot links with source (sx, sy) along the X axis.
@@ -641,8 +623,10 @@ define(function(require){
                     .attr("height", linkWidth)
                     //.attr("ry", linkRadius)
                     .style("fill", function(d) { return cmap(d.data); })
-                    .on("mouseover", function(d){ showInfoTip(d); })
-                    .on("mouseout", function() { hideInfoTip(); });
+                    //.on("mouseover", function(d){ showInfoTip(d); })
+                    //.on("mouseout", function() { hideInfoTip(); })
+                    .on("mousedown",  function(d) { applySelection("link", d.sx, d.sy, d.tx, d.ty); })
+                    .on("mouseup", function() { clearSelection("link"); });
             },
 
             hide: function(){
@@ -692,8 +676,6 @@ define(function(require){
         }
     })();
 
-
-
     canvas = d3.select("#canvas")
         .append("svg")
         .attr("width", 100)
@@ -702,22 +684,76 @@ define(function(require){
     adjMatrix = canvas.append("g")
         .attr("id","linksAdjMatrix");
 
-
     LinkElements.init();
     NodesAggregate.init();
     SwitchElements.init();
 
+    applySelection = function(type, sx, sy, tx, ty) {
+        var switches = d3.select("#switches").selectAll(".switch");
+        var links = d3.select("#links").selectAll(".link");
+        var nodes = d3.select("#nodes").selectAll(".nodebar");
+        var alpha = 0.2;
 
-    //canvas.append("g")
-    //    .append("rect")
-    //    .attr("x", clusterWidth + 20)
-    //    .attr("y",  displayPadding)
-    //    .attr("width", clusterWidth)
-    //    .attr("height", clusterWidth)
-    //    .style("fill", "lightblue")
-    //    .style("stroke", "lightblue");
+        var fadeAll = function(d){
+            var opacity;
+
+            if( ((d.sx === sx) && (d.sy === sy)) &&
+                ((d.tx === tx) && (d.ty === ty)))
+                opacity = 1;
+            else
+                opacity = alpha;
+
+            return opacity;
+        };
+
+        var fadePath = function(d){
+            var opacity;
+
+            if( ((d.sx === sx) && (d.sy === sy)) ||
+                ((d.sx === tx) && (d.sy === ty)) ||
+                ((d.tx === sx) && (d.ty === sy)) ||
+                ((d.tx === tx) && (d.ty === ty)))
+                opacity = 1;
+            else
+                opacity = alpha;
+
+            return opacity;
+        };
+
+        var fadePoint = function(d){
+            var opacity;
+
+            if( ((d.x === sx) && (d.y === sy)) ||
+                ((d.x === tx) && (d.y === ty)))
+                opacity = 1;
+            else
+                opacity = alpha;
+
+            return opacity;
+        };
+
+
+        if (type === "switch"){
+            switches.style("opacity", function(d){ return fadePoint(d)});
+            links.style("opacity", function(d){ return fadePath(d)});
+            //nodes.style("opacity", function(d){ return fade(d)});
+        }
+        if (type === "link"){
+            switches.style("opacity", function(d){ return fadePoint(d)});
+            links.style("opacity", function(d){ return fadeAll(d)});
+        }
+    };
+
+    clearSelection = function(type){
+        var switches = d3.select("#switches").selectAll(".switch");
+        var links = d3.select("#links").selectAll(".link");
+
+        switches.style("opacity", 1);
+        links.style("opacity", 1);
+    };
 
     showInfoTip = function(d){
+
         infotipDiv.transition()
             .duration(500)
             .style("opacity", .9);
@@ -805,11 +841,6 @@ define(function(require){
         SwitchElements.recolor();
     };
 
-    setupNodes = function(){
-        //NodesAggregate.setup();
-    };
-
-
     updateDrawing = function(){
         cmax = d3.max(switchLinkData, function(d) { return d.data; });
         console.log("max data:  " + cmax);
@@ -865,18 +896,16 @@ define(function(require){
         resizeDrawing();
     };
 
-
-
     adj.toggleNodes = function(state){
         if (state === "hide"){
             NodesAggregate.hide();
-            SwitchElements.hide();
+            //SwitchElements.hide();
         } else if (state === "expand"){
             NodesAggregate.expand();
-            SwitchElements.expand();
+            //SwitchElements.expand();
         } else if (state === "collapse"){
             NodesAggregate.collapse();
-            SwitchElements.collapse();
+            //SwitchElements.collapse();
         }
 
         console.log("Toggling... " + state);

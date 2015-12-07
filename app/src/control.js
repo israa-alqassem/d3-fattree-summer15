@@ -6,7 +6,7 @@ define(function(require) {
     var d3 = require("d3");
 
     var loadButton;
-    var showButton;
+    var colorButton;
     var trafficRadios;
     var nodeRadios;
     var filesList;
@@ -31,7 +31,7 @@ define(function(require) {
 
     control.init = function(){
             loadButton = d3.select("#button-load");
-            showButton = d3.select("#button-show");
+            colorButton = d3.select("#button-color");
             filesList = d3.select("#run");
             linkSizeSlider = d3.select("#range-link-size");
             linkSizeDisplay = d3.select("#link-size-display");
@@ -53,8 +53,8 @@ define(function(require) {
             loadButton.on("click", loadFile);
     };
 
-    control.addShowAction = function(action){
-            showButton.on("click", action );
+    control.addColorAction = function(action){
+            colorButton.on("click", action );
     };
 
     control.addLinkSizeAction = function(action){
