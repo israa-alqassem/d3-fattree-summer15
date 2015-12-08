@@ -15,7 +15,8 @@
   "dependencies": {
     "d3": "~3.5.6",
     "require": "*",
-    "requirejs": "~2.1.20"
+    "requirejs": "~2.1.20",
+    "colorbrewer": "~1.0.0"
   },
   "description": "Fat-tree performance viz",
   "main": "app.js",

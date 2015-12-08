@@ -213,3 +213,7 @@ translateCoords = function (sx, sy, tx, ty){
  return gids;
  };
  */
+
+
+//cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range([colorSet1[colorId], colorSet2[colorId], colorSet3[colorId]]);
+//cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range(["white", "red", "black"]);

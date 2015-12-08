@@ -7,10 +7,12 @@
 
     <link rel="stylesheet" href="css/screen.css" type="text/css" />
 </head>
-<body>
+<body style="height:100%">
 
     <div id="main" class="main">
-        <div id="headerRow">Header</div>
+        <div id="headerRow">
+            <p style="font-size:19px;">Fat TreeView</p>
+        </div>
         <div id="leftBar">
                     <table>
                         <tbody>
@@ -31,9 +33,10 @@
                             </select></td>
                         </tr>
                         <tr>
-                            <td></td>
-                            <td>
-                                <button id="button-color">color?</button>
+                            <td colspan="2">
+                                <br/>
+                                <button id="button-color">Switch color</button>
+                                <div id="colormap" style="margin-left:10px"></div>
                             </td>
                         </tr>
                         <tr>
@@ -78,18 +81,15 @@
                                 <input type="radio" name="toggle-nodes" value="collapse">Collapse
                             </td>
                         </tr>
-                        <tr>
-                            <td><label>Sample</label></td>
-                            <td  id="colormap"></td>
-                        </tr>
                         </tbody>
                     </table>
             <br/>
         </div>
-        <div id="rightBar">Right</div>
+        <!-- <div id="rightBar">Right</div> -->
         <div id="canvas"></div>
     </div>
 
+    <script src="lib/colorbrewer/colorbrewer.js"></script>
     <script data-main="src/init" src="lib/requirejs/require.js"></script>
 
 </body>

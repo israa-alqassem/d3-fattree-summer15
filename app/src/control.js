@@ -4,9 +4,11 @@
 
 define(function(require) {
     var d3 = require("d3");
+    var config = require('config');
 
     var loadButton;
     var colorButton;
+    //var colorSwatches;
     var trafficRadios;
     var nodeRadios;
     var filesList;
@@ -32,6 +34,7 @@ define(function(require) {
     control.init = function(){
             loadButton = d3.select("#button-load");
             colorButton = d3.select("#button-color");
+            //colorSwatches = d3.select('#colormap').selectAll('.swatch');
             filesList = d3.select("#run");
             linkSizeSlider = d3.select("#range-link-size");
             linkSizeDisplay = d3.select("#link-size-display");
@@ -44,6 +47,13 @@ define(function(require) {
 
             linkSizeDisplay.text(linkSizeSlider.node().value);
             switchSizeDisplay.text(switchSizeSlider.node().value);
+
+            d3.select('#colormap').selectAll('.swatch')
+                .data(config.VALUES_COLORMAP, function(d){return d;})
+                .enter()
+                .append('span')
+                .attr('class', 'swatch')
+                .style('background-color', function(d) { return d; });
     };
 
     control.addLoadAction = function(action) {
@@ -54,7 +64,16 @@ define(function(require) {
     };
 
     control.addColorAction = function(action){
-            colorButton.on("click", action );
+            colorButton.on("click", function(){
+                var colorSet = action();
+
+                var swatches = d3.select('#colormap').selectAll('.swatch').data(colorSet, function(d){return d;});
+                swatches.exit().remove();
+                swatches.enter()
+                    .append('span')
+                    .attr('class', 'swatch')
+                    .style('background-color', function(d) { return d; });
+            } );
     };
 
     control.addLinkSizeAction = function(action){

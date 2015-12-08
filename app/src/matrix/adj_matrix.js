@@ -14,6 +14,7 @@
 
 define(function(require){
     var d3 = require('d3');
+    var config = require('config');
 
     var switchLinkData, nodeLinkData, switchData;
     var maxX, maxY;
@@ -25,8 +26,7 @@ define(function(require){
     //var clusterMargin = 15;
     var displayPadding = 10;
 
-    var cmap;
-    var cmax;
+    var cmax, cmin;
     var colorId = 0;
     var colorSet1 = ["white", "white", "white", "white"];
     var colorSet2 = ["red", "green", "blue", "green"];
@@ -48,6 +48,14 @@ define(function(require){
     var translateCoords, calcNetDimensions, calcVizDimensions;
     var drawTriangle;
 
+    var cmap = function(val){
+        if(val === 0){
+            return "white";
+        }
+        else{
+            return config.color(val);
+        }
+    };
 
     var formatBytes = function(bytes) {
         if(bytes < 1024) return bytes + " B";
@@ -116,7 +124,7 @@ define(function(require){
             }
             for (i = 0; i < gy; i++){
                 y = y + SwitchElements.getGroupWidth(i);
-                y = y + LinkElements.getGroupWidth(i); // + clusterMargin;
+                y = y + LinkElements.getGroupHeight(i); // + clusterMargin;
             }
 
             if ( type === "col" ){
@@ -129,7 +137,7 @@ define(function(require){
                 // add position for first cluster elements
                 x = x + SwitchElements.getGroupWidth(0);
                 y = y + groupgap/2;
-                y = y + LinkElements.getGroupWidth(0); //clusterWidth;
+                y = y + LinkElements.getGroupHeight(0); //clusterWidth;
 
                 // add position within switchgroup. linkWidth is used because switches are aligned to links
                 x = x + pos * LinkElements.getLinkWidth_t();
@@ -207,7 +215,7 @@ define(function(require){
                     })
                     .attr("width", function(d){ return getWidth(d.y)})
                     .attr("height", function(d){return getHeight(d.y)})
-                    .style("fill", "lightblue")
+                    .style("fill", function(d) { return cmap(d.data); })
                     .style("stroke", "white")
                     .on("mousedown", function(d){ applySelection("switch", d.x, d.y, null, null); })
                     .on("mouseup", function(d){ clearSelection("switch"); });
@@ -239,7 +247,7 @@ define(function(require){
 
             recolor : function(){
                 switches.transition()
-                    .style("fill", "blue");
+                    .style("fill", function(d) { return cmap(d.data); });
             },
 
             getGroupWidth: function(num){
@@ -531,7 +539,7 @@ define(function(require){
         var linkMargin = 0;
         var linkWidth =  8;                                         // width of link in pixels
         var linkWidth_t = linkWidth + linkMargin;
-        var clusterPadding = 0;
+        var clusterPadding = 30;
         var clusterWidth = linkWidth_t * groupSizeX;
 
         var links;                                                      // d3 array of link(rect) objects
@@ -548,8 +556,10 @@ define(function(require){
         translateCoords = function (sx, sy, tx, ty){
             // Always plot links with source (sx, sy) along the X axis.
             // Eg1: for HCA (level 0) to edge switches (level 1), (sx, sy) = HCA and (tx, ty) = level1 switch
-            // Eg2: for edge switches (level 1) to level 2 switches, (sx, sy) = level 1 and (tx, ty) = level2 switch
+            // Eg2: for edge switches (level 1) to level 2 switches, (sx, sy) = level 2 and (tx, ty) = level 1 switch
             var i;
+            var newY = 0;
+            var newX = 0;
 
             if (sy % 2 === 1){
                 var tmp = [tx, ty];
@@ -561,23 +571,40 @@ define(function(require){
 
             // find position of containing cluster, position within cluster
             var xCluster = Math.floor(sx/groupSizeX);
-            var xinner = sx % groupSizeX;
-            var xouter = xCluster * groupSizeX;
+            var xInner = sx % groupSizeX;
+            //var xouter = xCluster * groupSizeX;
 
-            var yCluster = Math.floor(ty/2);
-            var yinner = tx % groupSizeY[yCluster];
-            var youter = 0;
-            for (i = 0; i < yCluster; i++){
-                youter = youter + groupSizeY[i];
+            var yCluster = Math.floor(ty/groupSizeY.length);
+            var yInner = tx % groupSizeY[yCluster];
+            //var youter = 0;
+            //for (i = 0; i < yCluster; i++){
+            //    youter = youter + groupSizeY[i];
+            //}
+
+            // get cluster position
+            for(i = 0; i < xCluster; i++){
+                newX = newX + (LinkElements.getGroupWidth(i));
+            }
+            for(i = 0; i < yCluster; i++){
+                newY = newY + (LinkElements.getGroupWidth(i) - clusterPadding);
             }
 
-            // get position in display
-            var newY = yinner + youter;
-            var newX = xinner + xouter;
+            // get position in cluster
+            for(i = 0; i < xInner; i++){
+                newX = newX + (LinkElements.getLinkWidth_t());
+            }
+            for(i = 0; i < yInner; i++){
+                newY = newY + (LinkElements.getLinkWidth_t());
+            }
+
+            //newY = yinner + youter;
+            //newX = xinner + xouter;
+
+
 
             // add link margins/padding
-            newX = newX * linkWidth_t;
-            newY = newY * linkWidth_t;
+            //newX = newX * linkWidth_t;
+            //newY = newY * linkWidth_t;
 
             // add cluster margins/padding
             //newX =  newX + (xCluster * clusterMargin);
@@ -674,6 +701,10 @@ define(function(require){
 
             getGroupWidth: function(num){
                 return clusterWidth + clusterPadding;//+clusterMargin;
+            },
+
+            getGroupHeight: function(num){
+                return clusterWidth;
             },
 
             setLinkWidth: function(val){
@@ -796,31 +827,26 @@ define(function(require){
 
         var linkWidth_t = LinkElements.getLinkWidth_t();
 
-        // TODO: this is off by linkWidth/2
+
         vizHeight = 0;
+        vizWidth = 0;
+
+        // Add space for nodes and links
         for (i = 0; i < groupSizeY.length; i++){
             vizHeight = vizHeight + (groupSizeY[i] * linkWidth_t);
-            //if (i > 0){
-            //    vizHeight = vizHeight + clusterMargin;
-            //}
         }
-        // TODO: the below line corrects a "bug" in the translateCoords function
-        //vizHeight = vizHeight - linkWidth_t; //linkWidth_t;
-
-        vizWidth = 0;
-        for (i = 0; i < NodesAggregate.getGroupCount(); i++){
-            vizWidth = vizWidth + (NodesAggregate.getGroupWidth(i));
-            vizWidth = vizWidth + (groupSizeX * linkWidth_t);
-            //if (i > 0){
-            //    vizWidth = vizWidth + clusterMargin;
-            //}
+        for (i = 0; i < Math.floor(maxX/ (groupSizeX-1)); i++){
+            vizWidth = vizWidth + NodesAggregate.getGroupWidth(i);
+            vizWidth = vizWidth + LinkElements.getGroupWidth(i);
         }
 
+        // Add spaces for switches
         var scountx = Math.floor(maxX/ (groupSizeX-1));
         var scounty = Math.floor(maxY / 2);
 
         for (i = 0; i < scountx; i++){
             vizWidth = vizWidth + SwitchElements.getGroupWidth(i);
+
         }
         for (i = 0; i < scounty; i++){
             vizHeight = vizHeight + SwitchElements.getGroupWidth(i);
@@ -840,27 +866,15 @@ define(function(require){
         SwitchElements.resize();
     };
 
-    recolorDrawing = function(){
-
-        colorId = colorId + 1;
-        if (colorId == 4){
-            colorId = 0;
-        }
-
-        cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range([colorSet1[colorId], colorSet2[colorId], colorSet3[colorId]]);
-
-        LinkElements.recolor();
-        NodesAggregate.recolor();
-        SwitchElements.recolor();
-    };
-
     updateDrawing = function(){
         cmax = d3.max(switchLinkData, function(d) { return d.data; });
+        cmin = d3.min(switchLinkData, function(d) { if (d.data != 0) return d.data; else return null;});
+
+        //data_range
         console.log("max data:  " + cmax);
+        console.log("min data:  " + cmin);
 
-        cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range([colorSet1[colorId], colorSet2[colorId], colorSet3[colorId]]);
-        //cmap = d3.scale.linear().domain([0,  cmax/2,  cmax]).range(["white", "red", "black"]);
-
+        config.data_range([cmin, cmax]);
 
         LinkElements.update();
         NodesAggregate.update();
@@ -890,7 +904,13 @@ define(function(require){
     };
 
     adj.changeColor = function() {
-        recolorDrawing();
+        config.change_color();
+
+        LinkElements.recolor();
+        NodesAggregate.recolor();
+        SwitchElements.recolor();
+
+        return config.VALUES_COLORMAP;
     };
 
     adj.updateLinkSize = function(val){
