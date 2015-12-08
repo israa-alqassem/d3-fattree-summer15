@@ -62,8 +62,8 @@ define(function(require){
 
     var invertYCoord = function(val){
         // Uncomment only one of the following lines. The first line inverts the image vertically
-        //return vizHeight - val;
-        return val;
+        return vizHeight - val;
+        //return val;
     };
 
     var SwitchElements = (function(){
@@ -121,6 +121,7 @@ define(function(require){
 
             if ( type === "col" ){
                 x = x + groupgap/2;
+
                 // add position within switchgroup. linkWidth is used because switches are aligned to links
                 y = y + pos * LinkElements.getLinkWidth_t();
             }
@@ -134,12 +135,21 @@ define(function(require){
                 x = x + pos * LinkElements.getLinkWidth_t();
             }
 
+            // inverts image vertical
+            if ( y != invertYCoord(y)){
+                y = invertYCoord(y);
+                if (type === "col") {
+                    y = y - LinkElements.getLinkWidth_t();
+                }
+                else{
+                    y = y - SwitchElements.getGroupWidth(i);
+                    y = y + groupgap;
+                }
+            }
+
             // add display padding
             x = x + displayPadding;
             y = y + displayPadding;
-
-            // inverts image vertical
-            y = invertYCoord(y);
 
             return [x, y];
         };
@@ -521,6 +531,7 @@ define(function(require){
         var linkMargin = 0;
         var linkWidth =  8;                                         // width of link in pixels
         var linkWidth_t = linkWidth + linkMargin;
+        var clusterPadding = 0;
         var clusterWidth = linkWidth_t * groupSizeX;
 
         var links;                                                      // d3 array of link(rect) objects
@@ -585,8 +596,10 @@ define(function(require){
             }
 
             // flip image along the horizontal
-            newY = invertYCoord(newY);
-            //newY = newY - linkWidth_t;
+            if( newY != invertYCoord(newY)){
+                newY = invertYCoord(newY);
+                newY = newY - linkWidth_t;
+            }
 
             // add display padding
             newX = newX + displayPadding;
@@ -660,7 +673,7 @@ define(function(require){
             },
 
             getGroupWidth: function(num){
-                return clusterWidth;//+clusterMargin;
+                return clusterWidth + clusterPadding;//+clusterMargin;
             },
 
             setLinkWidth: function(val){
@@ -792,7 +805,7 @@ define(function(require){
             //}
         }
         // TODO: the below line corrects a "bug" in the translateCoords function
-        vizHeight = vizHeight - linkWidth_t; //linkWidth_t;
+        //vizHeight = vizHeight - linkWidth_t; //linkWidth_t;
 
         vizWidth = 0;
         for (i = 0; i < NodesAggregate.getGroupCount(); i++){
