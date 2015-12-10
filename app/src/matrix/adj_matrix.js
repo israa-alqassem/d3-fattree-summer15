@@ -2,31 +2,19 @@
  * Created by kevin on 10/31/15.
  */
 
-/**
- * Created by kevin on 8/5/15.
- */
-
-
-/*
- TODO: Move LINKMATRIX to different file
- */
-
-
 define(function(require){
     var d3 = require('d3');
     var config = require('config');
 
     var switchLinkData, nodeLinkData, switchData;
     var maxX, maxY;
-    var location;
+    var vmax, vmin;
 
     var groupSizeX = 18;                                         // number of links to display horizontally/vertically per group
     var groupSizeY = [18, 36];                       // number of links to display vertically per group. Applicable to only levels 1 and 3 targets
-    //var clusterWidth = (linkWidth + linkMargin) * groupSizeX;           // width of cluster (group) in pixels // TODO: remove this variable since linkWidth can change dynamically
-    //var clusterMargin = 15;
     var displayPadding = 10;
 
-    var cmax, cmin;
+
     var colorId = 0;
     var colorSet1 = ["white", "white", "white", "white"];
     var colorSet2 = ["red", "green", "blue", "green"];
@@ -117,9 +105,11 @@ define(function(require){
             x = y = 0;
 
             // add space for each preceding columns and clusters
+            for (i = 0; i <= gx; i++){
+                x = x + NodesAggregate.getGroupWidth(i);
+            }
             for (i = 0; i < gx; i++){
                 x = x + SwitchElements.getGroupWidth(i);
-                x = x + NodesAggregate.getGroupWidth(i);
                 x = x + LinkElements.getGroupWidth(i); // + clusterMargin;
             }
             for (i = 0; i < gy; i++){
@@ -294,7 +284,7 @@ define(function(require){
             var y = 0;
 
             // add spacing for link clusters (start after the first cluster)
-            x = x + clusterSpan + groupgap + (val * clusterSpan);
+            x = x + (val * clusterSpan);
 
             // add spacing for previous groups
             for(i = 0; i < val; i++){
@@ -302,7 +292,7 @@ define(function(require){
             }
 
             // add spacing for switches
-            for(i = 0; i <= val; i++){
+            for(i = 0; i < val; i++){
                 x = x + SwitchElements.getGroupWidth(i);
             }
 
@@ -429,7 +419,7 @@ define(function(require){
                     .append("rect")
                     .attr("class", "nodegroup")
                     .attr("y", function(d){ return translateGroupCoord(d)[1]})
-                    .attr("x", function(d){ return translateGroupCoord(d)[0]})
+                    .attr("x", function(d){  return translateGroupCoord(d)[0]})
                     .attr("width", function(d){ return NodesAggregate.getGroupSize(d)})
                     .attr("height", function(d){return NodesAggregate.getGroupSize(d)})
                     .style("fill", "lightgrey")
@@ -445,10 +435,12 @@ define(function(require){
                     })
                     .attr("x", function(d,i){
                         //console.log("style" +d);
-                        return translateNodeCoord(i*18)[0]
+                        var x = translateNodeCoord(i*18)[0];
+                        var pos = NodesAggregate.getGroupWidth(0) - calcNodeBarSpan(d);
+                        return x + pos;
                     })
-                    .attr("width", function(d){ return nodeWidth})
-                    .attr("height", function(d){return nodeWidth})
+                    .attr("width", function(d){ return calcNodeBarSpan(d);})
+                    .attr("height", function(d){return nodeWidth;})
                     .style("fill", "grey")
                     .style("stroke", "darkgrey")
                     .style("opacity", 0);
@@ -502,7 +494,11 @@ define(function(require){
 
                 nodebars.transition()
                     .attr("y", function(d, i){ return translateNodeCoord(i*18)[1]})
-                    .attr("x", function(d, i){ return translateNodeCoord(i*18)[0]})
+                    .attr("x", function(d, i){
+                        var x = translateNodeCoord(i*18)[0];
+                        var pos = NodesAggregate.getGroupWidth(0) - calcNodeBarSpan(d);
+                        return x + pos;
+                    })
                     .attr("width", function(d){ return calcNodeBarSpan(d)})
                     .attr("height", function(d){ return nodeWidth});
             },
@@ -518,7 +514,7 @@ define(function(require){
 
             getGroupWidth: function(num){
                 if (hidden) return 0;
-                return NodesAggregate.getGroupSize(num) + groupgap;
+                return NodesAggregate.getGroupSize(num);
             },
 
             getGroupCount: function(){
@@ -611,7 +607,7 @@ define(function(require){
             //newY =  newY + (yCluster * clusterMargin);
 
             // add spacing for node-aggregate
-            for(i = 0; i < xCluster; i++){
+            for(i = 0; i <= xCluster; i++){
                 newX = newX + (NodesAggregate.getGroupWidth(i));
             }
             // add spacing for switches
@@ -701,6 +697,10 @@ define(function(require){
 
             getGroupWidth: function(num){
                 return clusterWidth + clusterPadding;//+clusterMargin;
+            },
+
+            getGroupWidth_base: function(num){           // without spacing elemets
+                return clusterWidth;//+clusterMargin;
             },
 
             getGroupHeight: function(num){
@@ -867,14 +867,14 @@ define(function(require){
     };
 
     updateDrawing = function(){
-        cmax = d3.max(switchLinkData, function(d) { return d.data; });
-        cmin = d3.min(switchLinkData, function(d) { if (d.data != 0) return d.data; else return null;});
+        vmax = d3.max(switchLinkData, function(d) { return d.data; });
+        vmin = d3.min(switchLinkData, function(d) { if (d.data != 0) return d.data; else return null;});
 
         //data_range
-        console.log("max data:  " + cmax);
-        console.log("min data:  " + cmin);
+        console.log("max data:  " + vmax);
+        console.log("min data:  " + vmin);
 
-        config.data_range([cmin, cmax]);
+        config.data_range([vmin, vmax]);
 
         LinkElements.update();
         NodesAggregate.update();
@@ -889,6 +889,7 @@ define(function(require){
     };
 
     var adj = {};
+
     adj.consume = function(data){
 
         switchLinkData = data.switchlink;
@@ -897,10 +898,6 @@ define(function(require){
 
         updateDrawing();
         //console.log("Trigger display: adj.consume");
-    };
-
-    adj.showLinks = function(){
-        showLinks();
     };
 
     adj.changeColor = function() {
