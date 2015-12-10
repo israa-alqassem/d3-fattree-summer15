@@ -35,31 +35,13 @@
                         <tr>
                             <td colspan="2">
                                 <br/>
-                                <button id="button-color">Switch color</button>
+                                <button id="button-color">Change color set</button>
                                 <div id="colormap" style="margin-left:10px"></div>
                             </td>
                         </tr>
                         <tr>
                             <td></td>
                             <td id="sub"></td>
-                        </tr>
-                        <tr>
-                            <td><label>Link size:</label></td>
-                            <td  id="link-size-display"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="right" >
-                            <input type="range" min="5" max="20" id="range-link-size" value="8">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><label>Switch size:</label></td>
-                            <td  id="switch-size-display"></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" align="right" >
-                                <input type="range" min="30" max="50" id="range-switch-size" value="15">
-                            </td>
                         </tr>
                         <tr>
                             <td colspan="2"><label>Traffic direction:</label></td>
@@ -72,6 +54,24 @@
                             </td>
                         </tr>
                         <tr>
+                            <td><label>Link size:</label></td>
+                            <td  id="link-size-display"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="right" >
+                            <input type="range" min="5" max="20" id="range-link-size" value="5">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Switch size:</label></td>
+                            <td  id="switch-size-display"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="right" >
+                                <input type="range" min="30" max="50" id="range-switch-size" value="30">
+                            </td>
+                        </tr>
+                        <tr>
                             <td colspan="2"><label>Node aggregates:</label></td>
                         </tr>
                         <tr>
@@ -79,6 +79,15 @@
                                 <input type="radio" name="toggle-nodes" value="hide" checked>Hide &nbsp;
                                 <input type="radio" name="toggle-nodes" value="expand" >Expand &nbsp;
                                 <input type="radio" name="toggle-nodes" value="collapse" disabled>Collapse
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div style="padding: 20px;"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="info-display" colspan="2" style="border-top:2px solid #ccffcc;border-bottom:2px solid #ccffcc;padding:10px">
                             </td>
                         </tr>
                         </tbody>

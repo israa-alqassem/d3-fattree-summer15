@@ -106,5 +106,3 @@ define(function(require) {
 
     return control;
 });
-
-//var logger = function() { return console.log("log")};

@@ -6,36 +6,30 @@ define(function(require){
     var d3 = require('d3');
     var config = require('config');
 
+    // dataset values
     var switchLinkData, nodeLinkData, switchData;
     var maxX, maxY;
     var vmax, vmin;
 
-    var groupSizeX = 18;                                         // number of links to display horizontally/vertically per group
-    var groupSizeY = [18, 36];                       // number of links to display vertically per group. Applicable to only levels 1 and 3 targets
-    var displayPadding = 10;
+    var groupSizeX = 18;                // number of links to display horizontally/vertically per group
+    var groupSizeY = [18, 36];          // number of links to display vertically per group. Applicable to only levels 1 and 3 targets
+    var displayPadding = 10;            // padding around image
 
-
-    var colorId = 0;
-    var colorSet1 = ["white", "white", "white", "white"];
-    var colorSet2 = ["red", "green", "blue", "green"];
-    var colorSet3 = ["black", "black", "black", "red"];
-
-    // derived/dynamic layout variables
+    // derived (dynamic) layout variables
     var vizHeight = 0;
     var vizWidth = 0;
-    //var linkWidth_t = 0;
 
-    // D3 object variables
+    // viz containter objects
     var canvas, adjMatrix;
 
-    // Private Methods
-    var updateDrawing, updateLinks, updateNodes, setupNodes;
-    var showSquaresLink, showTriangleLinks;
-    var applySelection, clearSelection, showInfoTip, hideInfoTip;
-    var resizeDrawing, recolorDrawing;
-    var translateCoords, calcNetDimensions, calcVizDimensions;
-    var drawTriangle;
+    // General methods
+    var updateDrawing, resizeDrawing;
+    var applySelection, clearSelection;
+    var calcNetDimensions, calcVizDimensions;
 
+    var updateInfoDisplay, clearInfoDisplay;
+
+    // paints elements white if their data value is 0
     var cmap = function(val){
         if(val === 0){
             return "white";
@@ -44,39 +38,39 @@ define(function(require){
             return config.color(val);
         }
     };
-
+    // converts bytes to KB, MB, and GB
     var formatBytes = function(bytes) {
         if(bytes < 1024) return bytes + " B";
         else if(bytes < 1048576) return(bytes / 1024).toFixed(3) + " KB";
         else if(bytes < 1073741824) return(bytes / 1048576).toFixed(3) + " MB";
         else return(bytes / 1073741824).toFixed(3) + " GB";
     };
-
-    var infotipDiv = d3.select("#canvas").append("div")
-        .attr("class", "infotip")
-        .style("opacity", 0);
-
+    // flips image coordinates vertically
     var invertYCoord = function(val){
         // Uncomment only one of the following lines. The first line inverts the image vertically
         return vizHeight - val;
         //return val;
     };
 
+    var infotipDiv = d3.select("#canvas").append("div")
+        .attr("class", "infotip")
+        .style("opacity", 0);
+    var infoDisplay = d3.select("#info-display").append("div")
+        .attr("class", "infodisplay");
+
+    // Prepares and displays switch elements in the network
     var SwitchElements = (function(){
         var switchdata = [];
         var hidden = false;
-        var switchWidth = 15;
+        var switchWidth = 30;
         var switchMargin = 0;
-        var groupgap = 5;
-        var clusterSpacer = 5;
+        var groupgap = 4;
         var switches;
 
         var transformData, translateSwitchCoord;
         var getWidth, getHeight;
 
         transformData = function(){
-            var count;
-            switchdata;
 
             // TODO: this area will have eventually transform the data
             switchdata = switchData;
@@ -158,7 +152,6 @@ define(function(require){
             } else{
                 return LinkElements.getLinkWidth_t();
             }
-
         };
 
         getHeight = function(y){
@@ -167,9 +160,7 @@ define(function(require){
             } else{
                 return LinkElements.getLinkWidth_t();
             }
-
         };
-
 
         return{
             init: function(){
@@ -182,8 +173,6 @@ define(function(require){
 
                 switches = d3.select("#switches").selectAll(".switch")
                     .data(switchdata);
-
-                SwitchElements.setSwitchSize(LinkElements.getLinkWidth_t());
             },
 
             draw : function(){
@@ -207,8 +196,14 @@ define(function(require){
                     .attr("height", function(d){return getHeight(d.y)})
                     .style("fill", function(d) { return cmap(d.data); })
                     .style("stroke", "white")
-                    .on("mousedown", function(d){ applySelection("switch", d.x, d.y, null, null); })
-                    .on("mouseup", function(d){ clearSelection("switch"); });
+                    .on("mousedown", function(d){
+                        applySelection("switch", d.x, d.y, null, null);
+                        updateInfoDisplay("switch", d);
+                    })
+                    .on("mouseup", function(d){
+                        clearSelection("switch");
+                        clearInfoDisplay();
+                    });
             },
 
             hide: function(){
@@ -222,9 +217,7 @@ define(function(require){
             },
 
             collapse: function(){
-                if (nodeLinkData === null) return;
 
-                // Do something special
             },
 
             resize : function(){
@@ -241,20 +234,17 @@ define(function(require){
             },
 
             getGroupWidth: function(num){
-                if (hidden) return clusterSpacer;
+                if(hidden) return groupgap;
                 return switchWidth + switchMargin + groupgap;
             },
 
             setSwitchSize: function(val){
                 switchWidth = val;
-            },
-
-            select: function(val){
-
             }
         }
     })();
 
+    // Prepares and displays compute nodes (aggregates) in the network
     var NodesAggregate = (function(){
         var groupgap = 10;      // gap between node group and it's respective switch cluster
 
@@ -529,11 +519,12 @@ define(function(require){
         }
     })();
 
+    // Prepares and displays internconnect links in the network
     var LinkElements = (function(){
         var hidden = false;
 
         var linkMargin = 0;
-        var linkWidth =  8;                                         // width of link in pixels
+        var linkWidth =  5;                                         // width of link in pixels
         var linkWidth_t = linkWidth + linkMargin;
         var clusterPadding = 30;
         var clusterWidth = linkWidth_t * groupSizeX;
@@ -568,14 +559,9 @@ define(function(require){
             // find position of containing cluster, position within cluster
             var xCluster = Math.floor(sx/groupSizeX);
             var xInner = sx % groupSizeX;
-            //var xouter = xCluster * groupSizeX;
 
             var yCluster = Math.floor(ty/groupSizeY.length);
             var yInner = tx % groupSizeY[yCluster];
-            //var youter = 0;
-            //for (i = 0; i < yCluster; i++){
-            //    youter = youter + groupSizeY[i];
-            //}
 
             // get cluster position
             for(i = 0; i < xCluster; i++){
@@ -592,19 +578,6 @@ define(function(require){
             for(i = 0; i < yInner; i++){
                 newY = newY + (LinkElements.getLinkWidth_t());
             }
-
-            //newY = yinner + youter;
-            //newX = xinner + xouter;
-
-
-
-            // add link margins/padding
-            //newX = newX * linkWidth_t;
-            //newY = newY * linkWidth_t;
-
-            // add cluster margins/padding
-            //newX =  newX + (xCluster * clusterMargin);
-            //newY =  newY + (yCluster * clusterMargin);
 
             // add spacing for node-aggregate
             for(i = 0; i <= xCluster; i++){
@@ -661,8 +634,14 @@ define(function(require){
                     .style("fill", function(d) { return cmap(d.data); })
                     //.on("mouseover", function(d){ showInfoTip(d); })
                     //.on("mouseout", function() { hideInfoTip(); })
-                    .on("mousedown",  function(d) { applySelection("link", d.sx, d.sy, d.tx, d.ty); })
-                    .on("mouseup", function() { clearSelection("link"); });
+                    .on("mousedown",  function(d) {
+                        applySelection("link", d.sx, d.sy, d.tx, d.ty);
+                        updateInfoDisplay("link", d);
+                    })
+                    .on("mouseup", function() {
+                        clearSelection("link");
+                        clearInfoDisplay();
+                    });
             },
 
             hide: function(){
@@ -796,7 +775,7 @@ define(function(require){
         links.style("opacity", 1);
     };
 
-    showInfoTip = function(d){
+    var showInfoTip = function(d){
 
         infotipDiv.transition()
             .duration(500)
@@ -807,11 +786,37 @@ define(function(require){
 
     };
 
-    hideInfoTip = function(){
+    var hideInfoTip = function(){
         infotipDiv.transition()
             .duration(500)
             .style("opacity", 0);
     };
+
+    updateInfoDisplay = function(type ,d){
+        var output = "";
+
+        if (type === "switch"){
+            output = "<strong>SWITCH</strong><br/>";
+            output = output + "&nbsp;&nbsp;x: " + d.x + "<br/>";
+            output = output + "&nbsp;&nbsp;y: " + d.y + "<br/>";
+            output = output + "<br/>";
+            output = output + "&nbsp;&nbsp;Traffic : <strong>" + formatBytes(d.data) + "</strong>";
+        }
+        if (type === "link"){
+
+            output = "<strong>LINK</strong><br/>";
+            output = output + "&nbsp;&nbsp;sx: " + d.sx + "&nbsp;&nbsp;&nbsp;&nbsp;sy: " + d.sy + "<br/>";
+            output = output + "&nbsp;&nbsp;tx: " + d.tx + "&nbsp;&nbsp;&nbsp;&nbsp;ty: " + d.ty + "<br/>";
+            output = output + "<br/>";
+            output = output + "&nbsp;&nbsp;Traffic : <strong>" + formatBytes(d.data) + "</strong>";
+        }
+        infoDisplay.html(output);
+    };
+
+    clearInfoDisplay = function(){
+        infoDisplay.html("<em>Click on an element to view it's information here.</em>");
+    };
+    clearInfoDisplay();
 
     calcNetDimensions = function(){
         maxX = d3.max(switchLinkData, function(d){return d.sx});
@@ -826,7 +831,6 @@ define(function(require){
         var i = 0;
 
         var linkWidth_t = LinkElements.getLinkWidth_t();
-
 
         vizHeight = 0;
         vizWidth = 0;
@@ -846,7 +850,6 @@ define(function(require){
 
         for (i = 0; i < scountx; i++){
             vizWidth = vizWidth + SwitchElements.getGroupWidth(i);
-
         }
         for (i = 0; i < scounty; i++){
             vizHeight = vizHeight + SwitchElements.getGroupWidth(i);
@@ -897,7 +900,6 @@ define(function(require){
         switchData = data.switch;
 
         updateDrawing();
-        //console.log("Trigger display: adj.consume");
     };
 
     adj.changeColor = function() {
@@ -944,7 +946,3 @@ define(function(require){
 
     return adj;
 });
-
-
-
-// python -m SimpleHTTPServer 8000
